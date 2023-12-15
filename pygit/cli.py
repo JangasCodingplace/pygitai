@@ -1,10 +1,11 @@
 import argparse
+
 from . import cmd
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description='A small package to optimize some git workflows'
+        description="A small package to optimize some git workflows"
     )
 
     subparsers = parser.add_subparsers(
@@ -18,7 +19,7 @@ def main():
     )
     parser_commit.add_argument(
         "--dry-run",
-        type=bool,
+        action="store_true",
         default=False,
     )
 
