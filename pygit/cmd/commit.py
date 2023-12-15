@@ -119,7 +119,7 @@ def get_llm_commit_msg_body_response(diffs: dict[str, str]):
     )
 
 
-def main(*args, **kwargs):
+def main(use_commit_body: bool = False, *args, **kwargs):
     """Commit command"""
     staged_files = get_staged_files()
 
@@ -129,5 +129,12 @@ def main(*args, **kwargs):
     diffs = {file_name: get_diff(file_name) for file_name in staged_files if file_name}
 
     commit_title = get_llm_commit_title_response(diffs)
-    commit_body = get_llm_commit_msg_body_response(diffs)
+    if use_commit_body:
+        commit_body = get_llm_commit_msg_body_response(diffs)
+    else:
+        commit_body = None
+        logger.info(
+            "No commit body is used. If you want to add extended information to your "
+            "commit message, set flag `--use-commit-body`"
+        )
     exit_commit(commit_title, commit_body)

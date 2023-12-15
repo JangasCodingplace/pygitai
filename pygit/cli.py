@@ -22,6 +22,11 @@ def main():
         action="store_true",
         default=False,
     )
+    parser_commit.add_argument(
+        "--use-commit-body",
+        action="store_true",
+        default=False,
+    )
 
     args = parser.parse_args()
     getattr(cmd, args.cmd)(**vars(args))
