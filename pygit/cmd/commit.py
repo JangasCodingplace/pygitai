@@ -59,8 +59,8 @@ def get_diff(file_name: str | None = None):
     return diff.stdout
 
 
-def exit_commit(title: str, body: str | None = None):
-    """Exit the commit command"""
+def exec_commit(title: str, body: str | None = None):
+    """Execute the commit command"""
     cmd = ["git", "commit", "-m", f'"{title}"']
     if body:
         cmd.extend(["-m", f'"{body}"'])
@@ -68,55 +68,127 @@ def exit_commit(title: str, body: str | None = None):
     subprocess.run(cmd)
 
 
-def get_llm_commit_title_response(diffs: dict[str, str]):
+def get_llm_commit_title_response(diffs: dict[str, str], prompt_override: list = None):
     """Get the response from the LLM"""
-    return CommitMessageLLM.exec_prompt(
-        prompt=[
-            {
-                "role": "system",
-                "content": (
-                    "You are an assistant for writing a title for a commit "
-                    "message. The user will send following information to you: \n"
-                    "1. The diff of all staged git cached files. \n"
-                    "2. Optional: The description of the current task the user is"
-                    "working at\n"
-                    "3. Optional: Messages of previous commits\n"
-                    "Please response with only a very short description for the "
-                    "commit message title."
-                ),
-            },
-            {
-                "role": "user",
-                "content": (f"My diff: {json.dumps(diffs)}"),
-            },
-        ]
-    )
+    prompt = prompt_override or [
+        {
+            "role": "system",
+            "content": (
+                "You are an assistant for writing a title for a commit "
+                "message. The user will send following information to you: \n"
+                "1. The diff of all staged git cached files. \n"
+                "2. Optional: The description of the current task the user is"
+                "working at\n"
+                "3. Optional: Messages of previous commits\n"
+                "Please response with only a very short description for the "
+                "commit message title."
+            ),
+        },
+        {
+            "role": "user",
+            "content": (f"My diff: {json.dumps(diffs)}"),
+        },
+    ]
+    return CommitMessageLLM.exec_prompt(prompt=prompt)
 
 
-def get_llm_commit_msg_body_response(diffs: dict[str, str]):
+def get_llm_commit_msg_body_response(
+    diffs: dict[str, str], prompt_override: list = None
+):
     """Get the response from the LLM"""
-    return CommitMessageLLM.exec_prompt(
-        prompt=[
-            {
-                "role": "system",
-                "content": (
-                    "You are an assistant for writing a body for a commit."
-                    "The user will send following information to you: \n"
-                    "1. The diff of all staged files. \n"
-                    "2. Optional: The description of the current task the user is"
-                    "working at\n"
-                    "3. Optional: Messages of previous commits\n"
-                    "Please response with a brief description for the commit which can "
-                    "be used for better understanding of the commit."
-                    "It's allowed to use multiple sentences or an enumeration."
-                ),
-            },
-            {
-                "role": "user",
-                "content": (f"My diff: {json.dumps(diffs)}"),
-            },
-        ]
-    )
+    prompt = prompt_override or [
+        {
+            "role": "system",
+            "content": (
+                "You are an assistant for writing a body for a commit."
+                "The user will send following information to you: \n"
+                "1. The diff of all staged files. \n"
+                "2. Optional: The description of the current task the user is"
+                "working at\n"
+                "3. Optional: Messages of previous commits\n"
+                "Please response with a brief description for the commit which can "
+                "be used for better understanding of the commit."
+                "It's allowed to use multiple sentences or an enumeration."
+            ),
+        },
+        {
+            "role": "user",
+            "content": (f"My diff: {json.dumps(diffs)}"),
+        },
+    ]
+    return CommitMessageLLM.exec_prompt(prompt=prompt)
+
+
+def ask_for_user_feedback(prompt_output_context: str, prompt_output: str):
+    """Ask the user for feedback"""
+    logger.info(f"Prompt Output for {prompt_output_context}: {prompt_output}")
+    agree = input("Do you agree with the prompt output? [y/n]")
+    if agree.lower() == "y":
+        return "y"
+    elif agree.lower() == "n":
+        recommendation = input("Any recommendation for a better output?")
+        return recommendation
+    else:
+        logger.warn("Wrong input. Please only enter 'y' or 'n'")
+        return ask_for_user_feedback(prompt_output_context, prompt_output)
+
+
+def process(use_commit_body: bool, diffs: dict[str, str]):
+    prompt_override = None
+    user_feedback = None
+    while user_feedback != "y":
+        commit_title, commit_title_full_context = get_llm_commit_title_response(
+            diffs, prompt_override=prompt_override
+        )
+        user_feedback = ask_for_user_feedback(
+            prompt_output_context="commit_title",
+            prompt_output=commit_title,
+        )
+        if user_feedback != "y":
+            prompt_override = commit_title_full_context + [
+                {
+                    "role": "user",
+                    "content": f"""
+                        I don't agree with the commit message.
+                        Here is my Feedback:
+                        {user_feedback or 'No Feedback provided'}
+
+                        Please try again.
+                    """,
+                },
+            ]
+    if use_commit_body:
+        user_feedback = None
+        prompt_override = None
+        while user_feedback != "y":
+            commit_body, commit_body_full_context = get_llm_commit_msg_body_response(
+                diffs, prompt_override=prompt_override
+            )
+            user_feedback = ask_for_user_feedback(
+                prompt_output_context="commit_body",
+                prompt_output=commit_body,
+            )
+            if user_feedback != "y":
+                prompt_override = commit_body_full_context + [
+                    {
+                        "role": "user",
+                        "content": f"""
+                            I don't agree with the commit message.
+                            Here is my Feedback:
+                            {user_feedback or 'No Feedback provided'}
+
+                            Please try again.
+                        """,
+                    },
+                ]
+
+    else:
+        commit_body = None
+        logger.info(
+            "No commit body is used. If you want to add extended information to your "
+            "commit message, set flag `--use-commit-body`"
+        )
+    exec_commit(commit_title, commit_body)
 
 
 def main(use_commit_body: bool = False, *args, **kwargs):
@@ -127,14 +199,4 @@ def main(use_commit_body: bool = False, *args, **kwargs):
         run_pre_commit_for_file(staged_files)
 
     diffs = {file_name: get_diff(file_name) for file_name in staged_files if file_name}
-
-    commit_title = get_llm_commit_title_response(diffs)
-    if use_commit_body:
-        commit_body = get_llm_commit_msg_body_response(diffs)
-    else:
-        commit_body = None
-        logger.info(
-            "No commit body is used. If you want to add extended information to your "
-            "commit message, set flag `--use-commit-body`"
-        )
-    exit_commit(commit_title, commit_body)
+    process(use_commit_body, diffs)

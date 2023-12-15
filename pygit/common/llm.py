@@ -16,7 +16,7 @@ W = TypeVar("W")
 
 class ResponseParserBase(Generic[T, U, W]):
     @staticmethod
-    def parse(response: T, prompt: U) -> W:
+    def parse(response: T, prompt: U) -> tuple[W]:
         raise NotImplementedError
 
 
@@ -24,7 +24,7 @@ class LLMBase(Generic[U, V]):
     llm_response_parser: Type[ResponseParserBase]
 
     @classmethod
-    def exec_prompt(cls, prompt: U) -> V:
+    def exec_prompt(cls, prompt: U) -> tuple[V, U]:
         """Execute a prompt and return the result"""
         raise NotImplementedError
 
@@ -52,4 +52,14 @@ class OpenAI(LLMBase[list, str]):
         response.raise_for_status()
         logger.info("OpenAI response received")
         logger.debug(f"OpenAI response: {response.json()}")
-        return cls.llm_response_parser.parse(prompt=prompt, response=response)
+        parsed_llm_response = cls.llm_response_parser.parse(
+            prompt=prompt,
+            response=response,
+        )
+        full_context = prompt + [
+            {
+                "role": "assistant",
+                "content": parsed_llm_response,
+            },
+        ]
+        return parsed_llm_response, full_context
