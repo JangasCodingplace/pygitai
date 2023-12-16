@@ -1,9 +1,55 @@
 import json
 import subprocess
+from pathlib import Path
+
+import jinja2
 
 from pygit.common import OpenAI, ResponseParserBase, config, get_logger
 
 logger = get_logger(__name__, config.logger.level)
+
+PROMPT_PATH = config.general.template_dir / "prompts" / "openai"
+
+
+def get_prompt_from_template(
+    template_dir_path: Path,
+    file_name: str,
+    context: dict,
+) -> str:
+    """Get the prompt from the template"""
+    template_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir_path))
+    template = template_env.get_template(file_name)
+    return template.render(**context)
+
+
+def get_llm_initial_message(
+    template_dir_path: Path,
+    base_file_name: str,
+    context_system: dict | None = None,
+    context_user: dict | None = None,
+):
+    """Get the initial message from the LLM"""
+    content_system = get_prompt_from_template(
+        template_dir_path=template_dir_path,
+        file_name=f"{base_file_name}_system.txt",
+        context=context_system or {},
+    )
+    content_user = get_prompt_from_template(
+        template_dir_path=PROMPT_PATH,
+        file_name=f"{base_file_name}_user.txt",
+        context=context_user or {},
+    )
+    prompt = [
+        {
+            "role": "system",
+            "content": content_system,
+        },
+        {
+            "role": "user",
+            "content": content_user,
+        },
+    ]
+    return prompt
 
 
 class CommitMessageLLMParser(ResponseParserBase):
@@ -70,25 +116,28 @@ def exec_commit(title: str, body: str | None = None):
 
 def get_llm_commit_title_response(diffs: dict[str, str], prompt_override: list = None):
     """Get the response from the LLM"""
-    prompt = prompt_override or [
-        {
-            "role": "system",
-            "content": (
-                "You are an assistant for writing a title for a commit "
-                "message. The user will send following information to you: \n"
-                "1. The diff of all staged git cached files. \n"
-                "2. Optional: The description of the current task the user is"
-                "working at\n"
-                "3. Optional: Messages of previous commits\n"
-                "Please response with only a very short description for the "
-                "commit message title."
-            ),
-        },
-        {
-            "role": "user",
-            "content": (f"My diff: {json.dumps(diffs)}"),
-        },
-    ]
+    base_file = "commit_title"
+    prompt = prompt_override or get_llm_initial_message(
+        template_dir_path=PROMPT_PATH,
+        base_file_name=base_file,
+        context_user={"diff": json.dumps(diffs)},
+    )
+    return CommitMessageLLM.exec_prompt(prompt=prompt)
+
+
+def get_llm_response(
+    base_file_name: str,
+    context_system: dict | None = None,
+    context_user: dict | None = None,
+    prompt_override: list = None,
+):
+    """Get the response from the LLM"""
+    prompt = prompt_override or get_llm_initial_message(
+        template_dir_path=PROMPT_PATH,
+        base_file_name=base_file_name,
+        context_system=context_system or {},
+        context_user=context_user or {},
+    )
     return CommitMessageLLM.exec_prompt(prompt=prompt)
 
 
@@ -96,49 +145,23 @@ def get_llm_commit_msg_body_response(
     diffs: dict[str, str], prompt_override: list = None
 ):
     """Get the response from the LLM"""
-    prompt = prompt_override or [
-        {
-            "role": "system",
-            "content": (
-                "You are an assistant for writing a body for a commit."
-                "The user will send following information to you: \n"
-                "1. The diff of all staged files. \n"
-                "2. Optional: The description of the current task the user is"
-                "working at\n"
-                "3. Optional: Messages of previous commits\n"
-                "Please response with a brief description for the commit which can "
-                "be used for better understanding of the commit."
-                "It's allowed to use multiple sentences or an enumeration."
-            ),
-        },
-        {
-            "role": "user",
-            "content": (f"My diff: {json.dumps(diffs)}"),
-        },
-    ]
+    base_file = "commit_body"
+    prompt = prompt_override or get_llm_initial_message(
+        template_dir_path=PROMPT_PATH,
+        base_file_name=base_file,
+        context_user={"diff": json.dumps(diffs)},
+    )
     return CommitMessageLLM.exec_prompt(prompt=prompt)
 
 
 def get_llm_feedback_response(diffs: dict[str, str], prompt_override: list = None):
     """Get the response from the LLM"""
-    prompt = prompt_override or [
-        {
-            "role": "system",
-            "content": (
-                "You are a Code reviewer for a commit."
-                "The user will send following information to you: \n"
-                "1. The diff of a single staged file or all staged files. \n"
-                "2. Optional: The description of the current task the user is"
-                "working at\n"
-                "3. Optional: Code Guidelines\n"
-                "Your Job is to review the code and give feedback to the user."
-            ),
-        },
-        {
-            "role": "user",
-            "content": (f"My diff: {json.dumps(diffs)}"),
-        },
-    ]
+    base_file = "feedback_on_commit"
+    prompt = prompt_override or get_llm_initial_message(
+        template_dir_path=PROMPT_PATH,
+        base_file_name=base_file,
+        context_user={"diff": json.dumps(diffs)},
+    )
     return CommitMessageLLM.exec_prompt(prompt=prompt)
 
 
@@ -156,56 +179,37 @@ def ask_for_user_feedback(prompt_output_context: str, prompt_output: str):
         return ask_for_user_feedback(prompt_output_context, prompt_output)
 
 
-def process_user_feedback_loop_commit_tile(diffs: dict[str, str]) -> str:
+def process_user_feedback_llm_loop(
+    context: str,
+    context_user: dict | None = None,
+    context_system: dict | None = None,
+) -> str:
     prompt_override = None
     user_feedback = None
     while user_feedback != "y":
-        commit_title, commit_title_full_context = get_llm_commit_title_response(
-            diffs, prompt_override=prompt_override
+        prompt_output, prompt_output_full_context = get_llm_response(
+            base_file_name=context,
+            prompt_override=prompt_override,
+            context_user=context_user or {},
+            context_system=context_system or {},
         )
         user_feedback = ask_for_user_feedback(
-            prompt_output_context="commit_title",
-            prompt_output=commit_title,
+            prompt_output_context=context,
+            prompt_output=prompt_output,
         )
         if user_feedback != "y":
-            prompt_override = commit_title_full_context + [
+            revision_prompt = get_prompt_from_template(
+                template_dir_path=PROMPT_PATH,
+                file_name=f"{context}_revision.txt",
+                context={"feedback": user_feedback or "No further info provided"},
+            )
+            prompt_override = prompt_output_full_context + [
                 {
                     "role": "user",
-                    "content": f"""
-                        I don't agree with your feedback.
-                        Here is my Feedback:
-                        {user_feedback or 'No Feedback provided'}
-                    """,
+                    "content": revision_prompt,
                 },
             ]
-    return commit_title
-
-
-def process_user_feedback_loop_commit_body(diffs: dict[str, str]) -> str:
-    user_feedback = None
-    prompt_override = None
-    while user_feedback != "y":
-        commit_body, commit_body_full_context = get_llm_feedback_response(
-            diffs, prompt_override=prompt_override
-        )
-        user_feedback = ask_for_user_feedback(
-            prompt_output_context="ai_code_feedback",
-            prompt_output=commit_body,
-        )
-        if user_feedback != "y":
-            prompt_override = commit_body_full_context + [
-                {
-                    "role": "user",
-                    "content": f"""
-                        I don't agree with the commit message.
-                        Here is my Feedback:
-                        {user_feedback or 'No Feedback provided'}
-
-                        Please try again.
-                    """,
-                },
-            ]
-    return commit_body
+    return prompt_output
 
 
 def main(
@@ -223,11 +227,20 @@ def main(
     diffs = {file_name: get_diff(file_name) for file_name in staged_files if file_name}
 
     if include_ai_feedback:
-        process_user_feedback_loop_commit_body(diffs)
+        process_user_feedback_llm_loop(
+            context="feedback_on_commit",
+            context_user={"diff": json.dumps(diffs)},
+        )
 
-    commit_title = process_user_feedback_loop_commit_tile(diffs)
+    commit_title = process_user_feedback_llm_loop(
+        context="commit_title",
+        context_user={"diff": json.dumps(diffs)},
+    )
     if use_commit_body:
-        commit_body = process_user_feedback_loop_commit_body(diffs)
+        commit_body = process_user_feedback_llm_loop(
+            context="commit_body",
+            context_user={"diff": json.dumps(diffs)},
+        )
     else:
         commit_body = None
         logger.info("No extended commit body provided")

@@ -1,5 +1,8 @@
 import os
 from dataclasses import dataclass
+from pathlib import Path
+
+BASE_DIR = Path(__file__).parent.parent
 
 
 @dataclass(frozen=True)
@@ -37,7 +40,18 @@ class OpenAIConfig:
 
 
 @dataclass(frozen=True)
+class GeneralConfig:
+    base_dir: Path = BASE_DIR
+    template_dir: Path = BASE_DIR / "templates"
+
+    @classmethod
+    def from_env(cls) -> "GeneralConfig":
+        return cls()
+
+
+@dataclass(frozen=True)
 class Config:
+    general: GeneralConfig
     git: Git
     openai: OpenAIConfig
     logger: Logger
@@ -45,6 +59,7 @@ class Config:
     @classmethod
     def from_env(cls) -> "Config":
         return cls(
+            general=GeneralConfig.from_env(),
             git=Git.from_env(),
             openai=OpenAIConfig.from_env(),
             logger=Logger.from_env(),
