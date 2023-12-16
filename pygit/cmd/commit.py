@@ -171,10 +171,14 @@ def process_user_feedback_llm_loop(
 def main(
     use_commit_body: bool = False,
     include_ai_feedback: bool = False,
+    auto_stage_all: bool = False,
     *args,
     **kwargs,
 ):
     """Commit command"""
+    if auto_stage_all:
+        Git.exec_stage_files(["-A"])
+
     if config.git.pre_commit:
         PreCommitHook.run(git_state.staged_files)
 

@@ -61,6 +61,7 @@ class Git:
             cmd.extend(["-m", f'"{body}"'])
         logger.info(f'cmd {" ".join(cmd)}')
         subprocess.run(cmd)
+        state.refresh()
 
     @classmethod
     def exec_stage_files(cls, file_names: list[str]):
@@ -68,6 +69,7 @@ class Git:
         cmd = ["git", "add"] + file_names
         logger.info(f'cmd {" ".join(cmd)}')
         subprocess.run(cmd)
+        state.refresh()
 
 
 @dataclass
@@ -83,6 +85,12 @@ class GitState:
             staged_files=staged_files,
             diff={file_name: Git.get_diff(file_name) for file_name in staged_files},
         )
+
+    def refresh(self):
+        self.staged_files = Git.get_staged_files()
+        self.diff = {
+            file_name: Git.get_diff(file_name) for file_name in self.staged_files
+        }
 
 
 state = GitState.from_base_commands()
