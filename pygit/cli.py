@@ -27,6 +27,11 @@ def main():
         action="store_true",
         default=False,
     )
+    parser_commit.add_argument(
+        "--include-ai-feedback",
+        action="store_true",
+        default=False,
+    )
 
     args = parser.parse_args()
     getattr(cmd, args.cmd)(**vars(args))

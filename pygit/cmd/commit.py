@@ -119,6 +119,29 @@ def get_llm_commit_msg_body_response(
     return CommitMessageLLM.exec_prompt(prompt=prompt)
 
 
+def get_llm_feedback_response(diffs: dict[str, str], prompt_override: list = None):
+    """Get the response from the LLM"""
+    prompt = prompt_override or [
+        {
+            "role": "system",
+            "content": (
+                "You are a Code reviewer for a commit."
+                "The user will send following information to you: \n"
+                "1. The diff of a single staged file or all staged files. \n"
+                "2. Optional: The description of the current task the user is"
+                "working at\n"
+                "3. Optional: Code Guidelines\n"
+                "Your Job is to review the code and give feedback to the user."
+            ),
+        },
+        {
+            "role": "user",
+            "content": (f"My diff: {json.dumps(diffs)}"),
+        },
+    ]
+    return CommitMessageLLM.exec_prompt(prompt=prompt)
+
+
 def ask_for_user_feedback(prompt_output_context: str, prompt_output: str):
     """Ask the user for feedback"""
     logger.info(f"Prompt Output for {prompt_output_context}: {prompt_output}")
@@ -133,7 +156,7 @@ def ask_for_user_feedback(prompt_output_context: str, prompt_output: str):
         return ask_for_user_feedback(prompt_output_context, prompt_output)
 
 
-def process(use_commit_body: bool, diffs: dict[str, str]):
+def process_user_feedback_loop_commit_tile(diffs: dict[str, str]) -> str:
     prompt_override = None
     user_feedback = None
     while user_feedback != "y":
@@ -149,6 +172,31 @@ def process(use_commit_body: bool, diffs: dict[str, str]):
                 {
                     "role": "user",
                     "content": f"""
+                        I don't agree with your feedback.
+                        Here is my Feedback:
+                        {user_feedback or 'No Feedback provided'}
+                    """,
+                },
+            ]
+    return commit_title
+
+
+def process_user_feedback_loop_commit_body(diffs: dict[str, str]) -> str:
+    user_feedback = None
+    prompt_override = None
+    while user_feedback != "y":
+        commit_body, commit_body_full_context = get_llm_feedback_response(
+            diffs, prompt_override=prompt_override
+        )
+        user_feedback = ask_for_user_feedback(
+            prompt_output_context="ai_code_feedback",
+            prompt_output=commit_body,
+        )
+        if user_feedback != "y":
+            prompt_override = commit_body_full_context + [
+                {
+                    "role": "user",
+                    "content": f"""
                         I don't agree with the commit message.
                         Here is my Feedback:
                         {user_feedback or 'No Feedback provided'}
@@ -157,41 +205,15 @@ def process(use_commit_body: bool, diffs: dict[str, str]):
                     """,
                 },
             ]
-    if use_commit_body:
-        user_feedback = None
-        prompt_override = None
-        while user_feedback != "y":
-            commit_body, commit_body_full_context = get_llm_commit_msg_body_response(
-                diffs, prompt_override=prompt_override
-            )
-            user_feedback = ask_for_user_feedback(
-                prompt_output_context="commit_body",
-                prompt_output=commit_body,
-            )
-            if user_feedback != "y":
-                prompt_override = commit_body_full_context + [
-                    {
-                        "role": "user",
-                        "content": f"""
-                            I don't agree with the commit message.
-                            Here is my Feedback:
-                            {user_feedback or 'No Feedback provided'}
-
-                            Please try again.
-                        """,
-                    },
-                ]
-
-    else:
-        commit_body = None
-        logger.info(
-            "No commit body is used. If you want to add extended information to your "
-            "commit message, set flag `--use-commit-body`"
-        )
-    exec_commit(commit_title, commit_body)
+    return commit_body
 
 
-def main(use_commit_body: bool = False, *args, **kwargs):
+def main(
+    use_commit_body: bool = False,
+    include_ai_feedback: bool = False,
+    *args,
+    **kwargs,
+):
     """Commit command"""
     staged_files = get_staged_files()
 
@@ -199,4 +221,15 @@ def main(use_commit_body: bool = False, *args, **kwargs):
         run_pre_commit_for_file(staged_files)
 
     diffs = {file_name: get_diff(file_name) for file_name in staged_files if file_name}
-    process(use_commit_body, diffs)
+
+    if include_ai_feedback:
+        process_user_feedback_loop_commit_body(diffs)
+
+    commit_title = process_user_feedback_loop_commit_tile(diffs)
+    if use_commit_body:
+        commit_body = process_user_feedback_loop_commit_body(diffs)
+    else:
+        commit_body = None
+        logger.info("No extended commit body provided")
+
+    exec_commit(commit_title, commit_body)
