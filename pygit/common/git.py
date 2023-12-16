@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 from .config import config
 from .logger import get_logger
+from .utils import file_name_matches_patterns, get_ignored_file_patterns
 
 logger = get_logger(__name__, config.logger.level)
 
@@ -79,7 +80,12 @@ class GitState:
 
     @classmethod
     def from_base_commands(cls) -> "GitState":
-        staged_files = Git.get_staged_files()
+        ignored_file_patterns = get_ignored_file_patterns()
+        staged_files = [
+            fp
+            for fp in Git.get_staged_files()
+            if fp and not file_name_matches_patterns(fp, ignored_file_patterns)
+        ]
 
         return cls(
             staged_files=staged_files,
@@ -87,7 +93,12 @@ class GitState:
         )
 
     def refresh(self):
-        self.staged_files = Git.get_staged_files()
+        ignored_file_patterns = get_ignored_file_patterns()
+        self.staged_files = [
+            fp
+            for fp in Git.get_staged_files()
+            if fp and not file_name_matches_patterns(fp, ignored_file_patterns)
+        ]
         self.diff = {
             file_name: Git.get_diff(file_name) for file_name in self.staged_files
         }
