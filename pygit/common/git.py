@@ -55,6 +55,41 @@ class Git:
         return diff.stdout
 
     @classmethod
+    def get_diff_between_branches(
+        cls, branch_1: str, branch_2: str, number_of_context_lines: int = 10
+    ):
+        """Get the diff between two branches"""
+        cmd = ["git", "diff", branch_1, branch_2]
+        if number_of_context_lines:
+            cmd.extend([f"-U{number_of_context_lines}"])
+
+        # exclude files from .pygitignore
+        excludes = [f":(exclude){pattern}" for pattern in get_ignored_file_patterns()]
+
+        cmd.extend(["--", "."])
+        cmd.extend(excludes)
+
+        logger.info(f'cmd {" ".join(cmd)}')
+        diff = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            text=True,
+        )
+        return diff.stdout
+
+    @classmethod
+    def get_current_branch(cls) -> str:
+        """Get the current branch"""
+        cmd = ["git", "branch", "--show-current"]
+        logger.info(f'cmd {" ".join(cmd)}')
+        branch = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            text=True,
+        )
+        return branch.stdout.strip()
+
+    @classmethod
     def exec_commit(cls, title: str, body: str | None = None):
         """Execute the commit command"""
         cmd = ["git", "commit", "-m", f'"{title}"']

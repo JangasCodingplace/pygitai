@@ -38,5 +38,19 @@ def main():
         default=False,
     )
 
+    parser_commit = subparsers.add_parser(
+        "pr-review",
+        help="Review for a pull request",
+    )
+    parser_commit.add_argument(
+        "--dry-run",
+        action="store_true",
+        default=False,
+    )
+    parser_commit.add_argument(
+        "--target-branch",
+        type=str,
+    )
+
     args = parser.parse_args()
-    getattr(cmd, args.cmd)(**vars(args))
+    getattr(cmd, args.cmd.replace("-", "_"))(**vars(args))
