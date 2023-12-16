@@ -1,10 +1,17 @@
 import json
-import subprocess
 from pathlib import Path
 
 import jinja2
 
-from pygit.common import OpenAI, ResponseParserBase, config, get_logger
+from pygit.common import (
+    Git,
+    OpenAI,
+    PreCommitHook,
+    ResponseParserBase,
+    config,
+    get_logger,
+    git_state,
+)
 
 logger = get_logger(__name__, config.logger.level)
 
@@ -61,57 +68,6 @@ class CommitMessageLLMParser(ResponseParserBase):
 class CommitMessageLLM(OpenAI):
     llm_response_parser = CommitMessageLLMParser
     config = config.openai
-
-
-def run_pre_commit_for_file(file_names: list[str], use_poetry: bool = True):
-    """Run pre commit for a single file"""
-    cmd = []
-    if use_poetry:
-        cmd.extend(["poetry", "run"])
-    cmd.extend(["pre-commit", "run", "--files"])
-    cmd.extend(file_names)
-    logger.info(f'cmd {" ".join(cmd)}')
-    pre_commit_response = subprocess.run(cmd)
-    pre_commit_response.check_returncode()
-
-
-def get_staged_files() -> list[str]:
-    """Get all staged files"""
-    cmd = ["git", "diff", "--name-only", "--cached"]
-    logger.info(f'cmd {" ".join(cmd)}')
-    diff = subprocess.run(
-        cmd,
-        stdout=subprocess.PIPE,
-        text=True,
-    )
-    logger.info(diff.stdout)
-    return diff.stdout.split("\n")
-
-
-def get_diff(file_name: str | None = None):
-    """Get the diff of all staged git files"""
-    cmd = ["git", "diff", "--cached"]
-    if file_name:
-        cmd.append(file_name)
-
-    logger.info(f'cmd {" ".join(cmd)}')
-
-    diff = subprocess.run(
-        cmd,
-        stdout=subprocess.PIPE,
-        text=True,
-    )
-
-    return diff.stdout
-
-
-def exec_commit(title: str, body: str | None = None):
-    """Execute the commit command"""
-    cmd = ["git", "commit", "-m", f'"{title}"']
-    if body:
-        cmd.extend(["-m", f'"{body}"'])
-    logger.info(f'cmd {" ".join(cmd)}')
-    subprocess.run(cmd)
 
 
 def get_llm_commit_title_response(diffs: dict[str, str], prompt_override: list = None):
@@ -219,30 +175,26 @@ def main(
     **kwargs,
 ):
     """Commit command"""
-    staged_files = get_staged_files()
-
     if config.git.pre_commit:
-        run_pre_commit_for_file(staged_files)
-
-    diffs = {file_name: get_diff(file_name) for file_name in staged_files if file_name}
+        PreCommitHook.run(git_state.staged_files)
 
     if include_ai_feedback:
         process_user_feedback_llm_loop(
             context="feedback_on_commit",
-            context_user={"diff": json.dumps(diffs)},
+            context_user={"diff": json.dumps(git_state.diff)},
         )
 
     commit_title = process_user_feedback_llm_loop(
         context="commit_title",
-        context_user={"diff": json.dumps(diffs)},
+        context_user={"diff": json.dumps(git_state.diff)},
     )
     if use_commit_body:
         commit_body = process_user_feedback_llm_loop(
             context="commit_body",
-            context_user={"diff": json.dumps(diffs)},
+            context_user={"diff": json.dumps(git_state.diff)},
         )
     else:
         commit_body = None
         logger.info("No extended commit body provided")
 
-    exec_commit(commit_title, commit_body)
+    Git.exec_commit(commit_title, commit_body)
