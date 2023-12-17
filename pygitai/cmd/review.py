@@ -1,4 +1,4 @@
-from pygit.common.git import Git
+from pygitai.common.git import Git
 
 from .commit import process_user_feedback_llm_loop
 

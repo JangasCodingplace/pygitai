@@ -5,9 +5,9 @@ from .config import BASE_DIR
 
 def get_ignored_file_patterns() -> list[str]:
     root_dir = BASE_DIR.parent
-    pygit_ignore_file = root_dir / ".pygitignore"
-    if pygit_ignore_file.exists():
-        with pygit_ignore_file.open("r") as f:
+    pygitai_ignore_file = root_dir / ".pygitaiignore"
+    if pygitai_ignore_file.exists():
+        with pygitai_ignore_file.open("r") as f:
             return f.read().splitlines()
     return []
 

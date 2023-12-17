@@ -3,7 +3,7 @@ from pathlib import Path
 
 import jinja2
 
-from pygit.common import (
+from pygitai.common import (
     Git,
     OpenAI,
     PreCommitHook,

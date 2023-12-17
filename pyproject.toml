@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pygit"
+name = "pygitai"
 version = "0.0.1"
 description = "A small package to optimize some git workflows"
 authors = ["JangasCodingplace <janisgoesser92@gmail.com>"]

@@ -1,1 +1,1 @@
-# PyGit
+# PyGitAI

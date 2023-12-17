@@ -63,7 +63,7 @@ class Git:
         if number_of_context_lines:
             cmd.extend([f"-U{number_of_context_lines}"])
 
-        # exclude files from .pygitignore
+        # exclude files from .pygitaiignore
         excludes = [f":(exclude){pattern}" for pattern in get_ignored_file_patterns()]
 
         cmd.extend(["--", "."])
