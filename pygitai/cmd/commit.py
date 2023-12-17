@@ -12,6 +12,7 @@ from pygitai.common import (
     get_logger,
     git_state,
 )
+from pygitai.common.db_api import BranchInfoDBAPI
 
 logger = get_logger(__name__, config.logger.level)
 
@@ -182,20 +183,31 @@ def main(
     if config.git.pre_commit:
         PreCommitHook.run(git_state.staged_files)
 
+    branch_info = BranchInfoDBAPI.get(Git.get_current_branch())
+
     if include_ai_feedback:
         process_user_feedback_llm_loop(
             context="feedback_on_commit",
-            context_user={"diff": json.dumps(git_state.diff)},
+            context_user={
+                "diff": json.dumps(git_state.diff),
+                "purpose": branch_info.purpose or "No purpose provided",
+            },
         )
 
     commit_title = process_user_feedback_llm_loop(
         context="commit_title",
-        context_user={"diff": json.dumps(git_state.diff)},
+        context_user={
+            "diff": json.dumps(git_state.diff),
+            "purpose": branch_info.purpose or "No purpose provided",
+        },
     )
     if use_commit_body:
         commit_body = process_user_feedback_llm_loop(
             context="commit_body",
-            context_user={"diff": json.dumps(git_state.diff)},
+            context_user={
+                "diff": json.dumps(git_state.diff),
+                "purpose": branch_info.purpose or "No purpose provided",
+            },
         )
     else:
         commit_body = None

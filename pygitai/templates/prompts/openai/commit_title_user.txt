@@ -1,1 +1,2 @@
+This is where I am concretely working at: {{ purpose }}
 My diff: {{ diff }}
