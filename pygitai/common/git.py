@@ -1,5 +1,6 @@
 import subprocess
 from dataclasses import dataclass
+from pathlib import Path
 
 from .config import config
 from .logger import get_logger
@@ -88,6 +89,18 @@ class Git:
             text=True,
         )
         return branch.stdout.strip()
+
+    @classmethod
+    def get_toplevel_directory(cls) -> Path:
+        """Get the top level directory of the git repo"""
+        cmd = ["git", "rev-parse", "--show-toplevel"]
+        logger.info(f'cmd {" ".join(cmd)}')
+        toplevel_directory = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            text=True,
+        )
+        return Path(toplevel_directory.stdout.strip())
 
     @classmethod
     def exec_commit(cls, title: str, body: str | None = None):
