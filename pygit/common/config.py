@@ -29,6 +29,7 @@ class OpenAIConfig:
     openai_key_name: str
     openai_key_secret: str
     openai_model: str
+    openai_api_token_limit: int
 
     @classmethod
     def from_env(cls) -> "OpenAIConfig":
@@ -36,6 +37,7 @@ class OpenAIConfig:
             openai_key_name=os.environ["OPENAI_KEY_NAME"],
             openai_key_secret=os.environ["OPENAI_KEY_SECRET"],
             openai_model=os.environ["OPENAI_MODEL"],
+            openai_api_token_limit=int(os.environ.get("OPENAI_API_TOKEN_LIMIT", 4096)),
         )
 
 

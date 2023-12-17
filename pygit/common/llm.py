@@ -24,6 +24,11 @@ class LLMBase(Generic[U, V]):
     llm_response_parser: Type[ResponseParserBase]
 
     @classmethod
+    def get_input_token_count(cls, prompt: U) -> int:
+        """Return the number of tokens in the prompt"""
+        raise NotImplementedError
+
+    @classmethod
     def exec_prompt(cls, prompt: U) -> tuple[V, U]:
         """Execute a prompt and return the result"""
         raise NotImplementedError
@@ -34,8 +39,24 @@ class OpenAI(LLMBase[list, str]):
     llm_response_parser: Type[ResponseParserBase[requests.Response, list, str]]
 
     @classmethod
+    def get_prompt_token_count(cls, prompt):
+        """Return the number of tokens in the prompt
+        This method is created based on OpenAIs article:
+        https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them  # noqa
+        """
+        prompt_ = " ".join([row["content"] for row in prompt])
+        return len(prompt_) // 4
+
+    @classmethod
     def exec_prompt(cls, prompt):
         """Execute a prompt and return the result"""
+        calculated_token_count = cls.get_prompt_token_count(prompt)
+        logger.info(f"Token input count: {calculated_token_count}")
+        if calculated_token_count > cls.config.openai_api_token_limit:
+            raise ValueError(
+                f"Token count {calculated_token_count} exceeds the limit of "
+                f"{cls.config.openai_api_token_limit}"
+            )
         payload = {
             "model": cls.config.openai_model,
             "messages": prompt,
