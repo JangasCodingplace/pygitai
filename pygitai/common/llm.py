@@ -72,6 +72,8 @@ class OpenAI(LLMBase[list, str]):
         )
         response.raise_for_status()
         logger.info("OpenAI response received")
+        logger.info(f"Real Prompt token: {response.json()['usage']['prompt_tokens']}")
+        logger.info(f"Total token: {response.json()['usage']['total_tokens']}")
         logger.debug(f"OpenAI response: {response.json()}")
         parsed_llm_response = cls.llm_response_parser.parse(
             prompt=prompt,
