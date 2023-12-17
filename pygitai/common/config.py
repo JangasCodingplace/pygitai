@@ -17,12 +17,11 @@ TOPLEVEL_DIRECTORY = Path(
 
 @dataclass(frozen=True)
 class Git:
-    pre_commit: bool
+    pre_commit: bool = (TOPLEVEL_DIRECTORY / ".git" / "hooks" / "pre-commit").exists()
 
     @classmethod
     def from_env(cls) -> "Git":
-        use_pre_commit = os.environ.get("PYGIT_PRE_COMMIT", "false").lower() == "true"
-        return cls(pre_commit=use_pre_commit)
+        return cls()
 
 
 @dataclass(frozen=True)
