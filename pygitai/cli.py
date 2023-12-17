@@ -17,6 +17,13 @@ def pygit_setup():
         pygitignore_default_file_contents = pygitignore_default_file.read_text()
         pygitai_gitignore_file.write_text(pygitignore_default_file_contents)
 
+    # create config.ini if it doesn't exist
+    pygitai_config_file = pygitai_project_config_dir / "config.ini"
+    if not pygitai_config_file.exists():
+        pygitai_default_config_file = BASE_DIR / "assets" / "config.ini"
+        pygitai_default_config_file_contents = pygitai_default_config_file.read_text()
+        pygitai_config_file.write_text(pygitai_default_config_file_contents)
+
     if not config.general.db_name.exists():
         BranchInfoDBAPI.create_table_if_not_exists()
 
