@@ -3,15 +3,7 @@ from pathlib import Path
 
 import jinja2
 
-from pygitai.common import (
-    Git,
-    OpenAI,
-    PreCommitHook,
-    ResponseParserBase,
-    config,
-    get_logger,
-    git_state,
-)
+from pygitai.common import LLM, Git, PreCommitHook, config, get_logger, git_state
 from pygitai.common.db_api import BranchInfoDBAPI
 
 logger = get_logger(__name__, config.logger.level)
@@ -60,17 +52,6 @@ def get_llm_initial_message(
     return prompt
 
 
-class CommitMessageLLMParser(ResponseParserBase):
-    @staticmethod
-    def parse(response, prompt):
-        return response.json()["choices"][0]["message"]["content"]
-
-
-class CommitMessageLLM(OpenAI):
-    llm_response_parser = CommitMessageLLMParser
-    config = config.openai
-
-
 def get_llm_commit_title_response(diffs: dict[str, str], prompt_override: list = None):
     """Get the response from the LLM"""
     base_file = "commit_title"
@@ -79,7 +60,7 @@ def get_llm_commit_title_response(diffs: dict[str, str], prompt_override: list =
         base_file_name=base_file,
         context_user={"diff": json.dumps(diffs)},
     )
-    return CommitMessageLLM.exec_prompt(prompt=prompt)
+    return LLM.exec_prompt(prompt=prompt)
 
 
 def get_llm_response(
@@ -95,7 +76,7 @@ def get_llm_response(
         context_system=context_system or {},
         context_user=context_user or {},
     )
-    return CommitMessageLLM.exec_prompt(prompt=prompt)
+    return LLM.exec_prompt(prompt=prompt)
 
 
 def get_llm_commit_msg_body_response(
@@ -108,7 +89,7 @@ def get_llm_commit_msg_body_response(
         base_file_name=base_file,
         context_user={"diff": json.dumps(diffs)},
     )
-    return CommitMessageLLM.exec_prompt(prompt=prompt)
+    return LLM.exec_prompt(prompt=prompt)
 
 
 def get_llm_feedback_response(diffs: dict[str, str], prompt_override: list = None):
@@ -119,7 +100,7 @@ def get_llm_feedback_response(diffs: dict[str, str], prompt_override: list = Non
         base_file_name=base_file,
         context_user={"diff": json.dumps(diffs)},
     )
-    return CommitMessageLLM.exec_prompt(prompt=prompt)
+    return LLM.exec_prompt(prompt=prompt)
 
 
 def ask_for_user_feedback(prompt_output_context: str, prompt_output: str):

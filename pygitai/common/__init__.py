@@ -1,8 +1,10 @@
+from . import llm
 from .config import config
 from .git import Git, PreCommitHook
 from .git import state as git_state
-from .llm import LLMBase, OpenAI, ResponseParserBase
 from .logger import get_logger
+
+LLM = getattr(llm, config.general.llm)
 
 __all__ = [
     "config",
@@ -13,4 +15,5 @@ __all__ = [
     "git_state",
     "Git",
     "PreCommitHook",
+    "LLM",
 ]

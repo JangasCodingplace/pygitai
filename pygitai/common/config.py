@@ -52,13 +52,17 @@ class OpenAIConfig:
 
 @dataclass(frozen=True)
 class GeneralConfig:
+    llm: str
+
     base_dir: Path = BASE_DIR
     template_dir: Path = BASE_DIR / "templates"
     db_name: Path = TOPLEVEL_DIRECTORY / ".pygitai" / "pygitaidb.sqlite3"
 
     @classmethod
     def from_env(cls) -> "GeneralConfig":
-        return cls()
+        return cls(
+            llm=os.environ.get("PYGITAI_LLM", "OpenAI"),
+        )
 
 
 @dataclass(frozen=True)

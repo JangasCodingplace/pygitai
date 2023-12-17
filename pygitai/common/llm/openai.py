@@ -1,42 +1,23 @@
-from typing import Generic, Type, TypeVar
-
 import requests
 
-from .config import OpenAIConfig, config
-from .logger import get_logger
+from pygitai.common.config import config
+from pygitai.common.logger import get_logger
+
+from .base import LLMBase, ResponseParserBase
 
 logger = get_logger(__name__, config.logger.level)
 
 
-T = TypeVar("T")
-U = TypeVar("U")
-V = TypeVar("V")
-W = TypeVar("W")
-
-
-class ResponseParserBase(Generic[T, U, W]):
+class OpenAIResponseParser(ResponseParserBase[requests.Response, list, str]):
     @staticmethod
-    def parse(response: T, prompt: U) -> tuple[W]:
-        raise NotImplementedError
-
-
-class LLMBase(Generic[U, V]):
-    llm_response_parser: Type[ResponseParserBase]
-
-    @classmethod
-    def get_input_token_count(cls, prompt: U) -> int:
-        """Return the number of tokens in the prompt"""
-        raise NotImplementedError
-
-    @classmethod
-    def exec_prompt(cls, prompt: U) -> tuple[V, U]:
-        """Execute a prompt and return the result"""
-        raise NotImplementedError
+    def parse(response: requests.Response, prompt: list) -> str:
+        """Parse the response from OpenAI"""
+        return response.json()["choices"][0]["message"]["content"]
 
 
 class OpenAI(LLMBase[list, str]):
-    config: OpenAIConfig
-    llm_response_parser: Type[ResponseParserBase[requests.Response, list, str]]
+    config = config.openai
+    llm_response_parser = OpenAIResponseParser
 
     @classmethod
     def get_prompt_token_count(cls, prompt):
