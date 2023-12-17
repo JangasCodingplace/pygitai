@@ -1,8 +1,8 @@
 import argparse
-import sqlite3
 
 from . import cmd
 from .common.config import BASE_DIR, config
+from .common.db_api import BranchInfoDBAPI
 from .common.git import Git
 
 
@@ -18,23 +18,7 @@ def pygit_setup():
         pygitai_gitignore_file.write_text(pygitignore_default_file_contents)
 
     if not config.general.db_name.exists():
-        # detup sqlite database
-        with sqlite3.connect(config.general.db_name) as connection:
-            cursor = connection.cursor()
-
-            # create table if not exists
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS branches (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                    branch_name TEXT,
-                    purpose TEXT,
-                    ticket_link TEXT,
-                    created_at INTEGER
-                )
-            """
-            )
-            connection.commit()
+        BranchInfoDBAPI.create_table_if_not_exists()
 
 
 def main():

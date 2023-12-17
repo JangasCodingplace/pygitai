@@ -18,6 +18,23 @@ class DoesNotExist(Exception):
 
 class BranchInfoDBAPI:
     @classmethod
+    def create_table_if_not_exists(cls):
+        with sqlite3.connect(config.general.db_name) as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS branches (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    branch_name TEXT,
+                    purpose TEXT,
+                    ticket_link TEXT,
+                    created_at INTEGER
+                )
+            """
+            )
+            connection.commit()
+
+    @classmethod
     def insert(cls, branch_name: str, purpose: str, ticket_link: str, created_at: int):
         with sqlite3.connect(config.general.db_name) as connection:
             cursor = connection.cursor()
