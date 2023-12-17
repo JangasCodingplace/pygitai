@@ -1,7 +1,8 @@
 import argparse
+import sqlite3
 
 from . import cmd
-from .common.config import BASE_DIR
+from .common.config import BASE_DIR, config
 from .common.git import Git
 
 
@@ -15,6 +16,25 @@ def pygit_setup():
         pygitignore_default_file = BASE_DIR / "assets" / ".gitignore"
         pygitignore_default_file_contents = pygitignore_default_file.read_text()
         pygitai_gitignore_file.write_text(pygitignore_default_file_contents)
+
+    if not config.general.db_name.exists():
+        # detup sqlite database
+        with sqlite3.connect(config.general.db_name) as connection:
+            cursor = connection.cursor()
+
+            # create table if not exists
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS branches (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    branch_name TEXT,
+                    purpose TEXT,
+                    ticket_link TEXT,
+                    created_at INTEGER
+                )
+            """
+            )
+            connection.commit()
 
 
 def main():
@@ -53,18 +73,23 @@ def main():
         default=False,
     )
 
-    parser_commit = subparsers.add_parser(
+    parser_pr_review = subparsers.add_parser(
         "pr-review",
         help="Review for a pull request",
     )
-    parser_commit.add_argument(
+    parser_pr_review.add_argument(
         "--dry-run",
         action="store_true",
         default=False,
     )
-    parser_commit.add_argument(
+    parser_pr_review.add_argument(
         "--target-branch",
         type=str,
+    )
+
+    subparsers.add_parser(
+        "setup-branch",
+        help="Setup a branch",
     )
 
     args = parser.parse_args()

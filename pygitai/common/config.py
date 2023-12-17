@@ -1,8 +1,18 @@
 import os
+import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent.parent
+
+# duplicate code from pygitai/common/git.py to avoid circular imports
+TOPLEVEL_DIRECTORY = Path(
+    subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        stdout=subprocess.PIPE,
+        text=True,
+    ).stdout.strip()
+)
 
 
 @dataclass(frozen=True)
@@ -45,6 +55,7 @@ class OpenAIConfig:
 class GeneralConfig:
     base_dir: Path = BASE_DIR
     template_dir: Path = BASE_DIR / "templates"
+    db_name: Path = TOPLEVEL_DIRECTORY / ".pygitai" / "pygitaidb.sqlite3"
 
     @classmethod
     def from_env(cls) -> "GeneralConfig":
