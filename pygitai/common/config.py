@@ -1,3 +1,4 @@
+import configparser
 import os
 import subprocess
 from dataclasses import dataclass
@@ -13,6 +14,15 @@ TOPLEVEL_DIRECTORY = Path(
         text=True,
     ).stdout.strip()
 )
+
+
+def read_config_file() -> configparser.ConfigParser:
+    config = configparser.ConfigParser()
+    default_config_file_path = TOPLEVEL_DIRECTORY / "pygitai.ini"
+    config.read(default_config_file_path)
+    config_file_path = TOPLEVEL_DIRECTORY / ".pygitai" / "config.ini"
+    config.read(config_file_path)
+    return config
 
 
 @dataclass(frozen=True)
@@ -57,6 +67,8 @@ class GeneralConfig:
     base_dir: Path = BASE_DIR
     template_dir: Path = BASE_DIR / "templates"
     db_name: Path = TOPLEVEL_DIRECTORY / ".pygitai" / "pygitaidb.sqlite3"
+    cfg: configparser.ConfigParser = read_config_file()
+    toplevel_directory = TOPLEVEL_DIRECTORY
 
     @classmethod
     def from_env(cls) -> "GeneralConfig":
