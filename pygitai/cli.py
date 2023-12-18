@@ -84,4 +84,4 @@ def main():
     )
 
     args = parser.parse_args()
-    getattr(cmd, args.cmd.replace("-", "_"))(**vars(args))
+    getattr(cmd, args.cmd.replace("-", "_"))(cli_args=args, **vars(args))
