@@ -3,21 +3,32 @@ import requests
 from pygitai.common.config import config
 from pygitai.common.logger import get_logger
 
-from .base import LLMBase, ResponseParserBase
+from .base import LLMBase, ParserBase, PromptLine
 
 logger = get_logger(__name__, config.logger.level)
 
 
-class OpenAIResponseParser(ResponseParserBase[requests.Response, list, str]):
+class OpenAIParser(ParserBase[requests.Response, list, str]):
     @staticmethod
-    def parse(response: requests.Response, prompt: list) -> str:
+    def parse_response(response: requests.Response, prompt: list) -> str:
         """Parse the response from OpenAI"""
         return response.json()["choices"][0]["message"]["content"]
+
+    @staticmethod
+    def parse_prompt(input_data: tuple[PromptLine, ...]):
+        """Parse the input data and return a list of dict"""
+        return [
+            {
+                "role": row.role,
+                "content": row.text,
+            }
+            for row in input_data
+        ]
 
 
 class OpenAI(LLMBase[list, str]):
     config = config.openai
-    llm_response_parser = OpenAIResponseParser
+    llm_parser = OpenAIParser
 
     @classmethod
     def get_prompt_token_count(cls, prompt):
@@ -56,7 +67,7 @@ class OpenAI(LLMBase[list, str]):
         logger.info(f"Real Prompt token: {response.json()['usage']['prompt_tokens']}")
         logger.info(f"Total token: {response.json()['usage']['total_tokens']}")
         logger.debug(f"OpenAI response: {response.json()}")
-        parsed_llm_response = cls.llm_response_parser.parse(
+        parsed_llm_response = cls.llm_parser.parse_response(
             prompt=prompt,
             response=response,
         )

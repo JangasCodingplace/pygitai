@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Generic, Type, TypeVar
 
 T = TypeVar("T")
@@ -6,14 +7,24 @@ V = TypeVar("V")
 W = TypeVar("W")
 
 
-class ResponseParserBase(Generic[T, U, W]):
+@dataclass
+class PromptLine:
+    role: str
+    text: str
+
+
+class ParserBase(Generic[T, U, W]):
     @staticmethod
-    def parse(response: T, prompt: U) -> W:
+    def parse_response(response: T, prompt: U) -> W:
+        raise NotImplementedError
+
+    @staticmethod
+    def parse_prompt(input_data: tuple[PromptLine, ...]) -> U:
         raise NotImplementedError
 
 
 class LLMBase(Generic[U, V]):
-    llm_response_parser: Type[ResponseParserBase]
+    llm_parser: Type[ParserBase]
 
     @classmethod
     def get_input_token_count(cls, prompt: U) -> int:
