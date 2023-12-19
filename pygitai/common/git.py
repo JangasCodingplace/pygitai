@@ -122,9 +122,9 @@ class Git:
     @classmethod
     def exec_commit(cls, title: str, body: str | None = None):
         """Execute the commit command"""
-        cmd = ["git", "commit", "-m", f'"{title}"']
+        cmd = ["git", "commit", "-m", f"{title}"]
         if body:
-            cmd.extend(["-m", f'"{body}"'])
+            cmd.extend(["-m", f"{body}"])
         logger.info(f'cmd {" ".join(cmd)}')
         subprocess.run(cmd)
         state.refresh()
