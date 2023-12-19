@@ -8,6 +8,9 @@ class BaseJob(ABC):
     cli_configurable_name: str | None = None
 
     def perform(self, cli_args: Namespace, *args, **kwargs):
+        self.cli_args = cli_args
+        self.kwargs = kwargs
+
         if self.cli_configurable_name and self.cli_configurable_name not in cli_args:
             return
         elif self.cli_configurable_name and not getattr(

@@ -24,6 +24,9 @@ class PreCommitHook(BaseJob):
 
 
 class GitLLMJobBase(LLMJobBase):
+    def get_diff(self):
+        return git_state.diff
+
     def perform_base(self, *args, **kwargs) -> str:
         branch_info = BranchInfoDBAPI.get(Git.get_current_branch())
         context_user = {
@@ -47,3 +50,14 @@ class CommitTitle(GitLLMJobBase):
 
 class FeedbackOnCommit(GitLLMJobBase):
     cli_configurable_name = "feedback_on_commit"
+
+
+class CodeReview(GitLLMJobBase):
+    cli_configurable_name = "feedback_on_commit"
+
+    def get_diff(self):
+        target_branch = self.cli_args.target_branch
+        return Git.get_diff_between_branches(
+            branch_1=target_branch,
+            branch_2=Git.get_current_branch(),
+        )
