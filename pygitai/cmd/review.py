@@ -1,15 +1,11 @@
+from argparse import Namespace
+
+from pygitai.common.jobs.api import CodeReview
+
+
 def main(
-    target_branch: str,
+    cli_args: Namespace,
     *args,
     **kwargs,
 ):
-    # current_branch = Git.get_current_branch()
-    # diff = Git.get_diff_between_branches(
-    #     branch_1=target_branch,
-    #     branch_2=current_branch,
-    # )
-    # process_user_feedback_llm_loop(
-    #     context="feedback_on_commit",
-    #     context_user={"diff": diff},
-    # )
-    pass
+    CodeReview().perform(cli_args)
