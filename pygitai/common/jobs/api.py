@@ -53,8 +53,6 @@ class FeedbackOnCommit(GitLLMJobBase):
 
 
 class CodeReview(GitLLMJobBase):
-    cli_configurable_name = "feedback_on_commit"
-
     def get_diff(self):
         target_branch = self.cli_args.target_branch
         return Git.get_diff_between_branches(
