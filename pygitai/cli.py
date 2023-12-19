@@ -1,4 +1,5 @@
 import argparse
+import shutil
 
 from . import cmd
 from .common.config import BASE_DIR, config
@@ -23,6 +24,14 @@ def pygit_setup():
         pygitai_default_config_file = BASE_DIR / "assets" / "config.ini"
         pygitai_default_config_file_contents = pygitai_default_config_file.read_text()
         pygitai_config_file.write_text(pygitai_default_config_file_contents)
+
+    # create pygitai_customizations directory if it doesn't exist by copying from assets
+    pygitai_customizations_dir = pygitai_project_config_dir / "pygitai_customization"
+    if not pygitai_customizations_dir.exists():
+        pygitai_customizations_assets_dir = (
+            BASE_DIR / "assets" / "pygitai_customization"
+        )
+        shutil.copytree(pygitai_customizations_assets_dir, pygitai_customizations_dir)
 
     if not config.general.db_name.exists():
         BranchInfoDBAPI.create_table_if_not_exists()
