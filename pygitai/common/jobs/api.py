@@ -30,7 +30,7 @@ class GitLLMJobBase(LLMJobBase):
     def perform_base(self, *args, **kwargs) -> str:
         branch_info = BranchInfoDBAPI.get(Git.get_current_branch())
         context_user = {
-            "diff": json.dumps(git_state.diff),
+            "diff": json.dumps(self.get_diff()),
             "purpose": branch_info.purpose or "No purpose provided",
         }
         return self.process_user_feedback_llm_loop(
@@ -55,7 +55,8 @@ class FeedbackOnCommit(GitLLMJobBase):
 class CodeReview(GitLLMJobBase):
     def get_diff(self):
         target_branch = self.cli_args.target_branch
-        return Git.get_diff_between_branches(
+        diff = Git.get_diff_between_branches(
             branch_1=target_branch,
             branch_2=Git.get_current_branch(),
         )
+        return diff
