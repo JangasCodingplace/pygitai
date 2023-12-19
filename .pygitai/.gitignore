@@ -1,3 +1,2 @@
-*.log
-*.sqlite3
-./pygitai/*
+# Automatically created by pygitai
+*
