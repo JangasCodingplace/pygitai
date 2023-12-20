@@ -45,18 +45,18 @@ class Logger:
 
 @dataclass(frozen=True)
 class OpenAIConfig:
-    openai_key_name: str
-    openai_key_secret: str
-    openai_model: str
+    openai_key_name: str | None
+    openai_key_secret: str | None
+    openai_model: str | None
     openai_api_token_limit: int
 
     @classmethod
     def from_env(cls) -> "OpenAIConfig":
         return cls(
-            openai_key_name=os.environ["OPENAI_KEY_NAME"],
-            openai_key_secret=os.environ["OPENAI_KEY_SECRET"],
-            openai_model=os.environ["OPENAI_MODEL"],
-            openai_api_token_limit=int(os.environ.get("OPENAI_API_TOKEN_LIMIT", 4096)),
+            openai_key_name=os.getenv("OPENAI_KEY_NAME"),
+            openai_key_secret=os.getenv("OPENAI_KEY_SECRET"),
+            openai_model=os.getenv("OPENAI_MODEL"),
+            openai_api_token_limit=int(os.getenv("OPENAI_API_TOKEN_LIMIT", 4096)),
         )
 
 
