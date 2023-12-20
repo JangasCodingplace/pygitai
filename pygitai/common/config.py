@@ -61,6 +61,19 @@ class OpenAIConfig:
 
 
 @dataclass(frozen=True)
+class HuggingFaceConfig:
+    api_token: str | None
+    model: str | None
+
+    @classmethod
+    def from_env(cls) -> "HuggingFaceConfig":
+        return cls(
+            api_token=os.getenv("HUGGING_FACE_API_TOKEN"),
+            model=os.getenv("HUGGING_FACE_MODEL", "microsoft/codereviewer"),
+        )
+
+
+@dataclass(frozen=True)
 class GeneralConfig:
     llm: str
 
@@ -82,6 +95,7 @@ class Config:
     general: GeneralConfig
     git: Git
     openai: OpenAIConfig
+    hugging_face: HuggingFaceConfig
     logger: Logger
 
     @classmethod
@@ -90,6 +104,7 @@ class Config:
             general=GeneralConfig.from_env(),
             git=Git.from_env(),
             openai=OpenAIConfig.from_env(),
+            hugging_face=HuggingFaceConfig.from_env(),
             logger=Logger.from_env(),
         )
 

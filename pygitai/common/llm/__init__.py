@@ -3,6 +3,7 @@ import sys
 from pygitai.common.config import config
 
 from .base import LLMBase, ParserBase
+from .hugging_face import HuggingFace
 from .openai import OpenAI
 
 try:
@@ -15,4 +16,5 @@ __all__ = [
     "LLMBase",
     "OpenAI",
     "ParserBase",
+    "HuggingFace",
 ]
