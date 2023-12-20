@@ -10,7 +10,7 @@ logger = get_logger(__name__, config.logger.level)
 
 class OpenAIParser(ParserBase[requests.Response, list, str]):
     @staticmethod
-    def parse_response(response: requests.Response, prompt: list) -> str:
+    def parse_response(response: requests.Response, prompt: list | None = None) -> str:
         """Parse the response from OpenAI"""
         return response.json()["choices"][0]["message"]["content"]
 
