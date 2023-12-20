@@ -40,7 +40,7 @@ class OpenAI(LLMBase[list, str]):
         return len(prompt_) // 4
 
     @classmethod
-    def exec_prompt(cls, prompt):
+    def exec_prompt(cls, prompt, model):
         """Execute a prompt and return the result"""
         calculated_token_count = cls.get_prompt_token_count(prompt)
         logger.info(f"Token input count: {calculated_token_count}")
@@ -50,7 +50,7 @@ class OpenAI(LLMBase[list, str]):
                 f"{cls.config.openai_api_token_limit}"
             )
         payload = {
-            "model": cls.config.openai_model,
+            "model": model,
             "messages": prompt,
         }
         logger.info("Wait for openai response")

@@ -47,7 +47,6 @@ class Logger:
 class OpenAIConfig:
     openai_key_name: str | None
     openai_key_secret: str | None
-    openai_model: str | None
     openai_api_token_limit: int
 
     @classmethod
@@ -55,7 +54,6 @@ class OpenAIConfig:
         return cls(
             openai_key_name=os.getenv("OPENAI_KEY_NAME"),
             openai_key_secret=os.getenv("OPENAI_KEY_SECRET"),
-            openai_model=os.getenv("OPENAI_MODEL"),
             openai_api_token_limit=int(os.getenv("OPENAI_API_TOKEN_LIMIT", 4096)),
         )
 
@@ -63,13 +61,11 @@ class OpenAIConfig:
 @dataclass(frozen=True)
 class HuggingFaceConfig:
     api_token: str | None
-    model: str | None
 
     @classmethod
     def from_env(cls) -> "HuggingFaceConfig":
         return cls(
             api_token=os.getenv("HUGGING_FACE_API_TOKEN"),
-            model=os.getenv("HUGGING_FACE_MODEL", "microsoft/codereviewer"),
         )
 
 
