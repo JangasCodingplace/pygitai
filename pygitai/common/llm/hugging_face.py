@@ -24,14 +24,14 @@ class HuggingFace(LLMBase[str, str]):
     llm_parser = HuggingFaceParser
 
     @classmethod
-    def exec_prompt(cls, prompt):
+    def exec_prompt(cls, prompt, model):
         payload = {
             "inputs": prompt,
         }
         logger.info("Wait for hugging-face response")
         logger.debug(f"Send Payload to hugging-face: {payload}")
         response = requests.post(
-            f"https://api-inference.huggingface.co/models/{cls.config.model}",
+            f"https://api-inference.huggingface.co/models/{model}",
             headers={"Authorization": f"Bearer {cls.config.api_token}"},
             json=payload,
         )

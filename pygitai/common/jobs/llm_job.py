@@ -18,8 +18,8 @@ class NoJobConfigured(Exception):
     """No job configured"""
 
 
-class NoTeamplateFileConfigured(Exception):
-    """No template file configured"""
+class ImproperlyConfigured(Exception):
+    """Improperly configured"""
 
 
 def get_prompt_from_template(
@@ -54,6 +54,7 @@ class LLMJobBase(BaseJob):
 
     job_name: str | None = None
     llm: Type[LLMBase] | None = None
+    llm_model: str | None = None
     template_file: Path | str | None = None
 
     @property
@@ -93,7 +94,10 @@ class LLMJobBase(BaseJob):
             context_system=context_system or {},
             context_user=context_user or {},
         )
-        return self.get_llm_klass().exec_prompt(prompt=prompt)
+        return self.get_llm_klass().exec_prompt(
+            prompt=prompt,
+            model=self.get_llm_model(),
+        )
 
     def process_user_feedback_llm_loop(
         self,
@@ -144,6 +148,18 @@ class LLMJobBase(BaseJob):
             )
         return getattr(llm, llm_api_name)
 
+    def get_llm_model(self) -> str:
+        cfg_ = config.general.cfg
+        llm_model = None
+        if f"pygitai.jobs.{self.__class__.__name__}" in cfg_:
+            return cfg_[f"pygitai.jobs.{self.__class__.__name__}"].get("llm_model")
+        if not llm_model:
+            return cfg_["pygitai"].get("default_llm_model")
+        else:
+            raise ImproperlyConfigured(
+                f"No LLM Model configured for job {self.__class__.__name__}"
+            )
+
     def get_template_file(self, type_: str) -> Path:
         if self.template_file is not None:
             if isinstance(self.template_file, Path):
@@ -171,7 +187,7 @@ class LLMJobBase(BaseJob):
         template_dir_path = config.general.toplevel_directory / Path(template_dir)
         template_file_path = template_dir_path / template_file_name
         if not template_file_path.exists():
-            raise NoTeamplateFileConfigured(
+            raise ImproperlyConfigured(
                 f"No template file configured for job {self.__class__.__name__}"
             )
 

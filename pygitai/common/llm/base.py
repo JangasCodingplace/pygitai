@@ -32,6 +32,6 @@ class LLMBase(Generic[U, V]):
         raise NotImplementedError
 
     @classmethod
-    def exec_prompt(cls, prompt: U) -> tuple[V, U]:
+    def exec_prompt(cls, prompt: U, model: str) -> tuple[V, U]:
         """Execute a prompt and return the result"""
         raise NotImplementedError
