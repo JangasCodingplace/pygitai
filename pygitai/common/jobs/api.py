@@ -53,7 +53,7 @@ class CommitTitle(GitLLMJobBase):
 
 
 class FeedbackOnCommit(GitLLMJobBase):
-    cli_configurable_name = "feedback_on_commit"
+    cli_configurable_name = "include_ai_feedback"
 
 
 class CodeReview(GitLLMJobBase):
