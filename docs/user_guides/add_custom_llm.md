@@ -1,5 +1,10 @@
 # Add a Custom LLM
 
+In many cases, the default LLM provided by pygitai is not enough to
+cover all the use cases or company compliance. For this reason,
+pygitai provides a simple way to add a custom LLM which maches the
+individual needs.
+
 ## Quickstart
 
 Use the following command to create an empty llm template:

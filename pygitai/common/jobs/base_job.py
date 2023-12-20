@@ -24,4 +24,5 @@ class BaseJob(ABC):
 
     @abstractmethod
     def exec_command(self, *args, **kwargs):
+        """Execute the command"""
         pass

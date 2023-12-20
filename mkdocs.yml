@@ -6,6 +6,14 @@ nav:
   - Introduction: index.md
   - User Guides:
     - Add Custom LLM: user_guides/add_custom_llm.md
+    - Overwrite Template Files: user_guides/overwrite_template_files.md
+  - Presets:
+    - (Job) AutoStageAll: presets/JobAutoStageAll.md
+    - (Job) PreCommitHook: presets/JobPreCommitHook.md
+    - (LLM Job) CommitBody: presets/JobCommitBody.md
+    - (LLM Job) CommitTitle: presets/JobCommitTitle.md
+    - (LLM Job) FeedbackOnCommit: presets/JobFeedbackOnCommit.md
+    - (LLM Job) CodeReview: presets/JobCodeReview.md
   - API:
     - PromptLine: api/PromptLine.md
     - ParserBase: api/ParserBase.md
