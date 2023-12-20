@@ -1,0 +1,16 @@
+site_name: PyGitAI
+base_url: https://jangascodingplace.github.io/pygitai/
+repo_url: https://github.com/JangasCodingplace/pygitai
+edit_uri: https://github.com/JangasCodingplace/pygitai/blob/main/docs/
+
+nav:
+  - Introduction: index.md
+  - Contributing: CONTRIBUTING.md
+  - Changelog: CHANGELOG.md
+  - License: LICENSE
+
+theme: 
+  name: material
+
+plugins:
+  - search
