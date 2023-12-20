@@ -1,7 +1,7 @@
 import json
 
 from pygitai.common.config import config
-from pygitai.common.db_api import BranchInfoDBAPI
+from pygitai.common.db_api import BranchInfoDBAPI, DoesNotExist
 from pygitai.common.git import Git
 from pygitai.common.git import PreCommitHook as GitPreCommitHook
 from pygitai.common.git import state as git_state
@@ -28,10 +28,14 @@ class GitLLMJobBase(LLMJobBase):
         return git_state.diff
 
     def perform_base(self, *args, **kwargs) -> str:
-        branch_info = BranchInfoDBAPI.get(Git.get_current_branch())
+        try:
+            branch_info = BranchInfoDBAPI.get(Git.get_current_branch())
+            purpose = branch_info.purpose
+        except DoesNotExist:
+            purpose = None
         context_user = {
             "diff": json.dumps(self.get_diff()),
-            "purpose": branch_info.purpose or "No purpose provided",
+            "purpose": purpose or "No purpose provided",
         }
         return self.process_user_feedback_llm_loop(
             context=self.context,
