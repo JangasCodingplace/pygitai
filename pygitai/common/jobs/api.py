@@ -46,10 +46,18 @@ class GitLLMJobBase(LLMJobBase):
         self.perform_base()
 
 
+class CommitBody(GitLLMJobBase):
+    cli_configurable_name = "use_commit_body"
+
+    def exec_command(self, *args, **kwargs):
+        return self.perform_base()
+
+
 class CommitTitle(GitLLMJobBase):
     def exec_command(self):
+        commit_body = CommitBody().perform(self.cli_args, self.kwargs) or None
         commit_title = self.perform_base()
-        Git.exec_commit(commit_title)
+        Git.exec_commit(commit_title, body=commit_body)
 
 
 class FeedbackOnCommit(GitLLMJobBase):
