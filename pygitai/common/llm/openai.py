@@ -101,17 +101,42 @@ class OpenAI(LLMBase[list, str]):
     llm_parser = OpenAIParser
 
     @classmethod
-    def get_prompt_token_count(cls, prompt):
+    def get_prompt_token_count(cls, prompt: list[dict]):
         """Return the number of tokens in the prompt
         This method is created based on OpenAIs article:
         https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them  # noqa
+
+
+        Arguments:
+        ----------
+        prompt:
+            The already parsed prompt to count the tokens.
+
+
+        Returns:
+        --------
+        The number of tokens in the prompt.
         """
         prompt_ = " ".join([row["content"] for row in prompt])
         return len(prompt_) // 4
 
     @classmethod
     def exec_prompt(cls, prompt, model):
-        """Execute a prompt and return the result"""
+        """Execute a prompt and return the result.
+
+        Arguments:
+        ----------
+        prompt:
+            The already parsed prompt to execute.
+        model:
+            The model to use for the prompt,
+            e.g. davinci, gpt-3.5-turbo, etc.
+
+
+        Returns:
+        --------
+        The parsed response from OpenAI API.
+        """
         calculated_token_count = cls.get_prompt_token_count(prompt)
         logger.info(f"Token input count: {calculated_token_count}")
         if calculated_token_count > cls.config.openai_api_token_limit:

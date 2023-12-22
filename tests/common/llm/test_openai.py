@@ -59,3 +59,15 @@ class TestOpenAIParser:
             }
         ).encode()
         assert openai.OpenAIParser.parse_response(response) == content
+
+
+class TestOpenAI:
+    def test_get_prompt_token_count(self):
+        line_1 = "This is a test string."
+        line_2 = "This is another test string."
+        s = [
+            {"role": "user", "content": line_1},
+            {"role": "user", "content": line_2},
+        ]
+        expected_token_count = (len(line_1) + len(line_2)) // 4
+        assert openai.OpenAI.get_prompt_token_count(s) == expected_token_count
