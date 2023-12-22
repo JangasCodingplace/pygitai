@@ -47,7 +47,7 @@ def main():
         dest="cmd",
         help=(
             "Command to run. Choices: "
-            "[commit, pr-review, setup-branch, customization]"
+            "[commit, pr-review, setup-branch, setup, customization, ui]"
         ),
     )
 

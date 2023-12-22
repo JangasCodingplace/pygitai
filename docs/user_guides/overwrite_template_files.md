@@ -11,7 +11,7 @@ default template files.
 Use the following command for overwriting a specific template file:
 
 ```
-pygitai customization --type template --job-name MyJob --template-group GROUP
+pygitai customization template --llm-job-name MyJob --template-group GROUP
 ```
 
 - `--llm-job-name`: The name of the llm job to be overwritten

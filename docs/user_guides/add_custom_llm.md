@@ -9,7 +9,7 @@ individual needs.
 
 Use the following command to create an empty llm template:
 ```
-pygitai customization --type llm --name MyLLM
+pygitai customization llm --name MyLLM
 ```
 
 This will create a new llm file into
