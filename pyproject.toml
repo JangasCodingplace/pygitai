@@ -15,11 +15,13 @@ max-line-length = 88
 [tool.mypy]
 ignore_missing_imports = true
 
+[tool.pytest.ini_options]
+testpaths = "tests"
+
 [tool.poetry.dependencies]
 python = "^3.10"
 requests = "^2.31.0"
 jinja2 = "^3.1.2"
-
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.6.0"
