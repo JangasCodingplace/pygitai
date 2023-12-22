@@ -4,6 +4,8 @@ edit_uri: https://github.com/JangasCodingplace/pygitai/blob/main/docs/
 
 nav:
   - Introduction: index.md
+  - Getting Started:
+    - CLI Commands: get_started/CLICommands.md
   - User Guides:
     - Add Custom LLM: user_guides/add_custom_llm.md
     - Overwrite Template Files: user_guides/overwrite_template_files.md

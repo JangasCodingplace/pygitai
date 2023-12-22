@@ -18,7 +18,7 @@ This allows you to customize the pygitai configuration for your
 project. Reffer to our customization guide for more information:
 
 - [Add a Custom Job](../user_guides/add_custom_jobs.md)
-- [Add a Custom Command](../user_guides/add_custom_commands.md)
+- [Add a Custom LLM](../user_guides/add_custom_llm.md)
 - [Overwrite Template Files](../user_guides/overwrite_template_files.md)
 
 
