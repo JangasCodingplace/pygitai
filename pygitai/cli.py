@@ -124,5 +124,26 @@ def main():
         help="Name of custom LLM Class to create",
     )
 
+    customization_template = customization_subparsers.add_parser(
+        "template",
+        help="Overwrite default pygitai templates",
+    )
+    customization_template.add_argument(
+        "--llm-job-name",
+        type=str,
+        help="Name of LLM Job Class to overwrite template for",
+    )
+    customization_template.add_argument(
+        "--template-group",
+        type=str,
+        required=False,
+        default="",
+        help=(
+            "Group of template to overwrite. "
+            "If not provided, all templates for the given LLM Job will be overwritten."
+            "Available groups: [system, user, revision]"
+        ),
+    )
+
     args = parser.parse_args()
     getattr(cmd, args.cmd.replace("-", "_"))(cli_args=args, **vars(args))

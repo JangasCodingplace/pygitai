@@ -63,6 +63,30 @@ class Customization:
             raise FileExistsError(f"File {customization_target_file} already exists")
         customization_target_file.write_text(f)
 
+    def template(self):
+        llm_job_name = self.cli_args.llm_job_name
+        template_group = self.cli_args.template_group
+
+        if template_group:
+            template_types = [template_group]
+        else:
+            template_types = ["system", "user", "revision"]
+
+        file_name = camel_to_snake(llm_job_name)
+        customization_target_dir = self.customization_target_dir / "templates"
+        customization_target_dir.mkdir(exist_ok=True)
+        for template_type in template_types:
+            customization_target_file = (
+                customization_target_dir / f"{file_name}_{template_type}.txt"
+            )
+            if customization_target_file.exists():
+                raise FileExistsError(
+                    f"File {customization_target_file} already exists"
+                )
+            customization_target_file.write_text(
+                "EMPTY TEMPLATE. Reffer to the docs for getting available properties."
+            )
+
 
 def main(
     cli_args: Namespace,
