@@ -1,13 +1,11 @@
 from pathlib import Path
 from typing import Type
 
-import jinja2
-
 from pygitai.common import llm
 from pygitai.common.config import config
 from pygitai.common.llm.base import LLMBase, PromptLine
 from pygitai.common.logger import get_logger
-from pygitai.common.utils import camel_to_snake
+from pygitai.common.utils import camel_to_snake, load_template_file
 
 from .base_job import BaseJob
 
@@ -20,19 +18,6 @@ class NoJobConfigured(Exception):
 
 class ImproperlyConfigured(Exception):
     """Improperly configured"""
-
-
-def get_prompt_from_template(
-    template_path: Path,
-    context: dict,
-) -> str:
-    """Get the prompt from the template"""
-    template_env = jinja2.Environment(
-        loader=jinja2.FileSystemLoader(template_path.parent)
-    )
-    file_name = template_path.name
-    template = template_env.get_template(file_name)
-    return template.render(**context)
 
 
 def ask_for_user_feedback(prompt_output_context: str, prompt_output: str):
@@ -98,11 +83,11 @@ class LLMJobBase(BaseJob):
             context_user (dict | None): Additional context which will
                 be passed to the template file for the user
         """
-        content_system = get_prompt_from_template(
+        content_system = load_template_file(
             template_path=self.get_template_file(type_="system"),
             context=context_system or {},
         )
-        content_user = get_prompt_from_template(
+        content_user = load_template_file(
             template_path=self.get_template_file(type_="user"),
             context=context_user or {},
         )
@@ -182,7 +167,7 @@ class LLMJobBase(BaseJob):
                 prompt_output=prompt_output,
             )
             if user_feedback != "y":
-                revision_prompt = get_prompt_from_template(
+                revision_prompt = load_template_file(
                     template_path=self.get_template_file(type_="revision"),
                     context={"feedback": user_feedback or "No further info provided"},
                 )

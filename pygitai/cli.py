@@ -89,5 +89,25 @@ def main():
         help="Setup a branch and enrich branch info for better ai help",
     )
 
+    customization = subparsers.add_parser(
+        "customization",
+        help="Customize pygitai",
+    )
+
+    customization_subparsers = customization.add_subparsers(
+        dest="customization_cmd",
+        help="Customization command to run. Choices: [job, llm, template]",
+    )
+
+    customization_llm = customization_subparsers.add_parser(
+        "llm",
+        help="Customize pygitai llm",
+    )
+    customization_llm.add_argument(
+        "--name",
+        type=str,
+        help="Name of custom LLM Class to create",
+    )
+
     args = parser.parse_args()
     getattr(cmd, args.cmd.replace("-", "_"))(cli_args=args, **vars(args))
