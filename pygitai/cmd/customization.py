@@ -23,7 +23,7 @@ class Customization:
 
     def llm(self):
         name = self.cli_args.name
-        template_path = self.template_base_path / "llm.py.jinja2"
+        template_path = self.template_base_path / "llm" / "llm.py.jinja2"
         context = {
             "llm_name": name,
         }
@@ -35,6 +35,28 @@ class Customization:
 
         file_name = camel_to_snake(name)
         customization_target_dir = self.customization_target_dir / "llm"
+        customization_target_dir.mkdir(exist_ok=True)
+        customization_target_file = customization_target_dir / f"{file_name}.py"
+        if customization_target_file.exists():
+            raise FileExistsError(f"File {customization_target_file} already exists")
+        customization_target_file.write_text(f)
+
+    def job(self):
+        name = self.cli_args.name
+        type_ = self.cli_args.type
+        template_file_name = f"{type_}_job.py.jinja2"
+        template_path = self.template_base_path / "jobs" / template_file_name
+        context = {
+            "job_name": name,
+        }
+
+        f = load_template_file(
+            template_path=template_path,
+            context=context,
+        )
+
+        file_name = camel_to_snake(name)
+        customization_target_dir = self.customization_target_dir / "jobs"
         customization_target_dir.mkdir(exist_ok=True)
         customization_target_file = customization_target_dir / f"{file_name}.py"
         if customization_target_file.exists():

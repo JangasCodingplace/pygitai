@@ -99,6 +99,21 @@ def main():
         help="Customization command to run. Choices: [job, llm, template]",
     )
 
+    customization_job = customization_subparsers.add_parser(
+        "job",
+        help="Customize pygitai job",
+    )
+    customization_job.add_argument(
+        "--name",
+        type=str,
+        help="Name of custom Job Class to create",
+    )
+    customization_job.add_argument(
+        "--type",
+        type=str,
+        help="Type of job to create. Available types: [base, llm]",
+    )
+
     customization_llm = customization_subparsers.add_parser(
         "llm",
         help="Customize pygitai llm",

@@ -6,7 +6,8 @@ import jinja2
 
 def camel_to_snake(name):
     """Convert camel case to snake case."""
-    return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
+    name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", name)
+    return re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", name).lower()
 
 
 def load_template_file(

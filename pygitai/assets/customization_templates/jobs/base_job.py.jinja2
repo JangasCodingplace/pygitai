@@ -1,0 +1,14 @@
+from pygitai.common.jobs.base_job import BaseJob
+
+
+# don't forget to add this class to __all__ in jobs/__init__.py
+# otherwise it won't be loaded
+
+
+class {{job_name}}(BaseJob):
+    cli_configurable_name = None
+
+    @classmethod
+    def exec_command(self, *args, **kwargs):
+        # To be implemented
+        pass
