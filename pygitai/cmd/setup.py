@@ -12,9 +12,7 @@ def pygit_setup():
     # add .gitignore to pygitai directory if it doesn't exist
     pygitai_gitignore_file = pygitai_project_config_dir / ".gitignore"
     if not pygitai_gitignore_file.exists():
-        pygitignore_default_file = BASE_DIR / "assets" / ".gitignore"
-        pygitignore_default_file_contents = pygitignore_default_file.read_text()
-        pygitai_gitignore_file.write_text(pygitignore_default_file_contents)
+        pygitai_gitignore_file.write_text("# Created by pygitai automatically.\n*")
 
     # create config.ini if it doesn't exist
     pygitai_config_file = pygitai_project_config_dir / "config.ini"
