@@ -1,6 +1,7 @@
 from .commit import main as commit
 from .customization import main as customization
 from .review import main as pr_review
+from .setup import main as setup
 from .setup_branch import main as setup_branch
 
 __all__ = [
@@ -8,4 +9,5 @@ __all__ = [
     "pr_review",
     "setup_branch",
     "customization",
+    "setup",
 ]
