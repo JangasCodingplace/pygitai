@@ -1,5 +1,8 @@
 # PyGitAI
 
+**Please note - this tool is currently under development and not in
+a ready to use state yet!**
+
 Welcome to PyGitAI, a tool which helps to improve your code, commit
 messages and more by using Git and AI.
 
