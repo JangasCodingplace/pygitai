@@ -45,51 +45,48 @@ def main():
 
     subparsers = parser.add_subparsers(
         dest="cmd",
-        help="Command to run",
+        help=(
+            "Command to run. Choices: "
+            "[commit, pr-review, setup-branch, setup, customization, ui]"
+        ),
     )
 
     parser_commit = subparsers.add_parser(
         "commit",
-        help="Commit a directory",
-    )
-    parser_commit.add_argument(
-        "--dry-run",
-        action="store_true",
-        default=False,
+        help="Commit all staged changes. This is a LLM command.",
     )
     parser_commit.add_argument(
         "--use-commit-body",
         action="store_true",
         default=False,
+        help="Add an extended body to the commit message",
     )
     parser_commit.add_argument(
         "--include-ai-feedback",
         action="store_true",
         default=False,
+        help="Include AI feedback before commiting code",
     )
     parser_commit.add_argument(
         "--auto-stage-all",
         action="store_true",
         default=False,
+        help="Automatically stage all unstaged files",
     )
 
     parser_pr_review = subparsers.add_parser(
         "pr-review",
-        help="Review for a pull request",
-    )
-    parser_pr_review.add_argument(
-        "--dry-run",
-        action="store_true",
-        default=False,
+        help="Get AI Review for different branches / hashes",
     )
     parser_pr_review.add_argument(
         "--target-branch",
         type=str,
+        help="Target branch to compare against",
     )
 
     subparsers.add_parser(
         "setup-branch",
-        help="Setup a branch",
+        help="Setup a branch and enrich branch info for better ai help",
     )
 
     args = parser.parse_args()
