@@ -7,6 +7,7 @@ nav:
   - User Guides:
     - Add Custom LLM: user_guides/add_custom_llm.md
     - Overwrite Template Files: user_guides/overwrite_template_files.md
+    - Add Custom Jobs: user_guides/add_custom_jobs.md
   - Presets:
     - (Job) AutoStageAll: presets/JobAutoStageAll.md
     - (Job) PreCommitHook: presets/JobPreCommitHook.md
@@ -18,6 +19,8 @@ nav:
     - PromptLine: api/PromptLine.md
     - ParserBase: api/ParserBase.md
     - LLMBase: api/LLMBase.md
+    - BaseJob: api/BaseJob.md
+    - LLMJobBase: api/LLMJobBase.md
   - Contributing: CONTRIBUTING.md
   - Changelog: CHANGELOG.md
   - License: LICENSE
