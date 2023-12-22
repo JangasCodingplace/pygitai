@@ -10,6 +10,16 @@ logger = get_logger(__name__, config.logger.level)
 
 
 def get_ignored_file_patterns() -> list[str]:
+    """Get the patterns of the files to ignore.
+
+    The patterns are read from the `.pygitaiignore` file in the top
+    level directory of the git repo.
+
+
+    Returns:
+    --------
+    List of patterns to ignore.
+    """
     top_level_directory = Git.get_toplevel_directory()
     pygitai_ignore_file = top_level_directory / ".pygitaiignore"
     if pygitai_ignore_file.exists():
