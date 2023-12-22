@@ -29,7 +29,31 @@ def get_ignored_file_patterns() -> list[str]:
 
 
 def file_name_matches_patterns(file_name: str, patterns: list[str]) -> bool:
-    """Check if the file name matches any of the patterns"""
+    """Check if the file name matches any of the patterns.
+
+
+    Attributes:
+    -----------
+    file_name:
+        File name to check
+    patterns:
+        List of patterns to check against the file name
+
+
+    Returns:
+    --------
+    True if the file name matches any of the patterns, False otherwise.
+
+
+    Examples:
+    ---------
+    >>> file_name_matches_patterns("poetry.lock", ["poetry.lock"])
+    True
+    >>> file_name_matches_patterns("poetry.lock", ["*.lock"])
+    True
+    >>> file_name_matches_patterns("poetry.lock", ["*.toml"])
+    False
+    """
     for pattern in patterns:
         if fnmatch.fnmatch(file_name, pattern):
             return True
