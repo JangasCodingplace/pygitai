@@ -11,12 +11,82 @@ logger = get_logger(__name__, config.logger.level)
 class OpenAIParser(ParserBase[requests.Response, list, str]):
     @staticmethod
     def parse_response(response: requests.Response, prompt: list | None = None) -> str:
-        """Parse the response from OpenAI"""
+        """Parse the response from OpenAI
+
+
+        Arguments:
+        ----------
+        response:
+            The response from OpenAI API.
+        prompt:
+            The prompt that was used to generate the response.
+            This might be useful for debugging.
+
+
+        Returns:
+        --------
+        The parsed response from OpenAI API.
+        """
         return response.json()["choices"][0]["message"]["content"]
 
     @staticmethod
-    def parse_prompt(input_data: tuple[PromptLine, ...]):
-        """Parse the input data and return a list of dict"""
+    def parse_prompt(input_data: tuple[PromptLine, ...] | PromptLine):
+        """Parse the input data and return a list of dict.
+
+
+        Arguments:
+        ----------
+        input_data:
+            The input data to parse. It can be a single PromptLine
+            or a tuple of PromptLine.
+
+
+        Returns:
+        --------
+        A list of dict with the following format:
+        [
+            {
+                "role": <ROLE_NAME>,
+                "content": <CONTENT>,
+            },
+        ]
+
+
+        Example:
+        --------
+        >>> prompt_line = PromptLine(
+        ...     role="user", text="This is a one way prompt."
+        ... )
+        >>> OpenAIParser.parse_prompt(prompt_line)
+        [{'role': 'user', 'content': 'This is a one way prompt.'}]
+        >>> prompt_lines = (
+        ...     PromptLine(role="system", text="This is a multiline prompt.",),
+        ...     PromptLine(role="user", text="This is a second line.",),
+        ...     PromptLine(role="user", text="And another part of the conversation.",),
+        ...     PromptLine(role="assistant", text="This is a response.",),
+        ... )
+        >>> OpenAIParser.parse_prompt(prompt_lines)
+        [
+            {
+                'role': 'system',
+                'content': 'This is a multiline prompt.'
+            },
+            {
+                'role': 'user',
+                'content': 'This is a second line.'
+            },
+            {
+                'role': 'user',
+                'content': 'And another part of the conversation.'
+            },
+            {
+                'role': 'assistant',
+                'content': 'This is a response.'
+            }
+        ]
+        """
+        if isinstance(input_data, PromptLine):
+            input_data = (input_data,)
         return [
             {
                 "role": row.role,

@@ -41,7 +41,7 @@ class ParserBase(Generic[T, U, W]):
         raise NotImplementedError
 
     @staticmethod
-    def parse_prompt(input_data: tuple[PromptLine, ...]) -> U:
+    def parse_prompt(input_data: tuple[PromptLine, ...] | PromptLine) -> U:
         """Parse a generic code object into a specific prompt object
         which will be sent to the llm.
 

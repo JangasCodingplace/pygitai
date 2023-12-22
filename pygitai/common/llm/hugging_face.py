@@ -14,8 +14,10 @@ class HuggingFaceParser(ParserBase[requests.Response, str, str]):
         return " ".join([data["generated_text"] for data in response.json()])
 
     @staticmethod
-    def parse_prompt(input_data: tuple[PromptLine, ...]):
+    def parse_prompt(input_data: tuple[PromptLine, ...] | PromptLine):
         """Parse the input data and return a list of dict"""
+        if isinstance(input_data, PromptLine):
+            input_data = (input_data,)
         return "\n\n".join([row.text for row in input_data])
 
 
