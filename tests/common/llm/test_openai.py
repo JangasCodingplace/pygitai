@@ -1,5 +1,7 @@
 import json
+from functools import partial
 
+import pytest
 import requests
 
 from pygitai.common.llm import openai
@@ -62,12 +64,105 @@ class TestOpenAIParser:
 
 
 class TestOpenAI:
-    def test_get_prompt_token_count(self):
-        line_1 = "This is a test string."
-        line_2 = "This is another test string."
-        s = [
-            {"role": "user", "content": line_1},
-            {"role": "user", "content": line_2},
+    def setup_class(self):
+        self.line_1 = "This is a test string."
+        self.line_2 = "This is another test string."
+        self.prompt = [
+            {"role": "user", "content": self.line_1},
+            {"role": "user", "content": self.line_2},
         ]
-        expected_token_count = (len(line_1) + len(line_2)) // 4
-        assert openai.OpenAI.get_prompt_token_count(s) == expected_token_count
+
+    def mock_get_prompt_token_count(self, prompt):
+        return sum([len(row["content"]) for row in prompt]) // 4
+
+    def mock_parse_response(self, response, prompt, mocked_return_value):
+        return mocked_return_value
+
+    class MockRequests:
+        @classmethod
+        def post(cls, mocked_response, *args, **kwargs):
+            return mocked_response
+
+    def test_get_prompt_token_count(self, monkeypatch):
+        expected_token_count = (len(self.line_1) + len(self.line_2)) // 4
+        assert openai.OpenAI.get_prompt_token_count(self.prompt) == expected_token_count
+
+    def test_exec_prompt_success(self, monkeypatch):
+        expected_token_count = (len(self.line_1) + len(self.line_2)) // 4
+        response_content = "It's a test response"
+
+        response = requests.Response()
+        response.status_code = 200
+        response._content = json.dumps(
+            {
+                "usage": {
+                    "prompt_tokens": int(expected_token_count * 0.25),
+                    "total_tokens": (
+                        int(expected_token_count * 0.25) + len(response_content) // 4
+                    ),
+                },
+                "choices": [
+                    {
+                        "message": {
+                            "content": response_content,
+                        },
+                    }
+                ],
+            }
+        ).encode()
+
+        monkeypatch.setattr(
+            openai.OpenAI,
+            "get_prompt_token_count",
+            self.mock_get_prompt_token_count,
+        )
+        monkeypatch.setattr(
+            openai.requests,
+            "post",
+            partial(self.MockRequests.post, response),
+        )
+        monkeypatch.setattr(
+            openai.OpenAIParser,
+            "parse_response",
+            partial(self.mock_parse_response, mocked_return_value=response_content),
+        )
+
+        assert openai.OpenAI.exec_prompt(self.prompt, model="test-gpt-3.5") == (
+            response_content,
+            self.prompt + [{"role": "assistant", "content": response_content}],
+        )
+
+    def test_exec_prompt_failure_on_max_token(self, monkeypatch):
+        class ConfigPatch:
+            openai_api_token_limit = 0
+
+        monkeypatch.setattr(
+            openai.OpenAI,
+            "get_prompt_token_count",
+            self.mock_get_prompt_token_count,
+        )
+        monkeypatch.setattr(
+            openai.OpenAI,
+            "config",
+            ConfigPatch,
+        )
+        with pytest.raises(ValueError):
+            openai.OpenAI.exec_prompt(self.prompt, model="test-gpt-3.5")
+
+    def test_exec_prompt_failure_on_response(self, monkeypatch):
+        response = requests.Response()
+        response.status_code = 401
+        response._content = json.dumps({}).encode()
+
+        monkeypatch.setattr(
+            openai.OpenAI,
+            "get_prompt_token_count",
+            self.mock_get_prompt_token_count,
+        )
+        monkeypatch.setattr(
+            openai.requests,
+            "post",
+            partial(self.MockRequests.post, response),
+        )
+        with pytest.raises(requests.exceptions.HTTPError):
+            openai.OpenAI.exec_prompt(self.prompt, model="test-gpt-3.5")
