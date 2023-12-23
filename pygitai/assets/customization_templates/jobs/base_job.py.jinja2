@@ -1,11 +1,11 @@
-from pygitai.common.jobs.base_job import BaseJob
+from pygitai.common.jobs.base import JobBase
 
 
 # don't forget to add this class to __all__ in jobs/__init__.py
 # otherwise it won't be loaded
 
 
-class {{job_name}}(BaseJob):
+class {{job_name}}(JobBase):
     cli_configurable_name = None
 
     @classmethod

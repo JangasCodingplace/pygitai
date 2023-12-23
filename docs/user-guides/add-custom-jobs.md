@@ -25,7 +25,7 @@ new job.
 For more information about the classes refer to the following API
 docs:
 
-- [BaseJob](../api/BaseJob.md)
+- [JobBase](../api/JobBase.md)
 - [LLMJobBase](../api/LLMJobBase.md)
 
 
@@ -33,10 +33,10 @@ docs:
 
 ```python
 # Add this class to the .pygitai/pygitai_customization/job directory
-from pygitai.common.job.base_job import BaseJob
+from pygitai.common.job.base_job import JobBase
 
 
-class MyJob(BaseJob):
+class MyJob(JobBase):
     cli_configurable_name = None
 
     @classmethod

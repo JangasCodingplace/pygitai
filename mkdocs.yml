@@ -4,12 +4,12 @@ edit_uri: https://github.com/JangasCodingplace/pygitai/blob/main/docs/
 
 nav:
   - Introduction: index.md
-  - Getting Started:
-    - CLI Commands: get_started/CLICommands.md
+  - Get Started:
+    - CLI Commands: usage/cli-commands.md
   - User Guides:
-    - Add Custom LLM: user_guides/add_custom_llm.md
-    - Overwrite Template Files: user_guides/overwrite_template_files.md
-    - Add Custom Jobs: user_guides/add_custom_jobs.md
+    - Add Custom LLM: user-guides/add-custom-llm.md
+    - Overwrite Template Files: user-guides/overwrite-template-files.md
+    - Add Custom Jobs: user-guides/add-custom-jobs.md
   - Presets:
     - (Job) AutoStageAll: presets/JobAutoStageAll.md
     - (Job) PreCommitHook: presets/JobPreCommitHook.md
@@ -20,8 +20,8 @@ nav:
   - API:
     - PromptLine: api/PromptLine.md
     - ParserBase: api/ParserBase.md
+    - JobBase: api/JobBase.md
     - LLMBase: api/LLMBase.md
-    - BaseJob: api/BaseJob.md
     - LLMJobBase: api/LLMJobBase.md
   - Contributing: CONTRIBUTING.md
   - Changelog: CHANGELOG.md

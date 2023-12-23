@@ -1,1 +1,1 @@
-::: pygitai.common.jobs.llm_job.LLMJobBase
+::: pygitai.common.jobs.base.LLMJobBase
