@@ -2,6 +2,7 @@ import sqlite3
 from dataclasses import dataclass
 
 from .config import config
+from .exceptions import DoesNotExist
 
 
 @dataclass
@@ -10,10 +11,6 @@ class BranchInfo:
     purpose: str
     ticket_link: str
     created_at: int
-
-
-class DoesNotExist(Exception):
-    pass
 
 
 class BranchInfoDBAPI:

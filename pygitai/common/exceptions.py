@@ -8,3 +8,7 @@ class JobImproperlyConfigured(Exception):
 
 class InvalidRole(Exception):
     """Invalid role"""
+
+
+class DoesNotExist(Exception):
+    pass
