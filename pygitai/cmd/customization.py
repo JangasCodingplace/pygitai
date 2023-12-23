@@ -77,7 +77,7 @@ class Customization:
         customization_target_dir.mkdir(exist_ok=True)
         for template_type in template_types:
             customization_target_file = (
-                customization_target_dir / f"{file_name}_{template_type}.txt"
+                customization_target_dir / f"{file_name}_{template_type}.jinja2"
             )
             if customization_target_file.exists():
                 raise FileExistsError(

@@ -6,11 +6,10 @@ from pygitai.common.git import Git
 from pygitai.common.git import PreCommitHook as GitPreCommitHook
 from pygitai.common.git import state as git_state
 
-from .base_job import BaseJob
-from .llm_job import LLMJobBase
+from .base import JobBase, LLMJobBase
 
 
-class AutoStageAll(BaseJob):
+class AutoStageAll(JobBase):
     """Auto stage all not staged files
 
     This is not a LLM job.
@@ -23,7 +22,7 @@ class AutoStageAll(BaseJob):
         Git.exec_stage_files(["-A"])
 
 
-class PreCommitHook(BaseJob):
+class PreCommitHook(JobBase):
     """If Pre-commit hook are used, run them without commiting.
 
     This is typically used to run before a LLM Commit Job for saving
@@ -71,25 +70,26 @@ class CommitBody(GitLLMJobBase):
     This job can be enabled or disabled by using the cli argument
     `--use-commit-body`. It's false by default.
 
+
     Template Files:
     ---------------
-        commit_body_system.txt: This template is used to get the
-            initial information for the llm to understand the task
-            it has to do. No Arguments are passed to this template.
+    commit_body_system.jinja2: This template is used to get the
+        initial information for the llm to understand the task
+        it has to do. No Arguments are passed to this template.
 
-        commit_body_user.txt: This template is used to provide the
-            user specific information which is used to write the
-            extended commit body. The following arguments are passed
-            to this template:
-                - diff: The diff of the current staged files
-                - purpose: The purpose of the current branch
+    commit_body_user.jinja2: This template is used to provide the
+        user specific information which is used to write the
+        extended commit body. The following arguments are passed
+        to this template:
+            - diff: The diff of the current staged files
+            - purpose: The purpose of the current branch
 
-        commit_body_revision.txt: If the LLM response is rejected by
-            the user, this template is used to get a revision of the
-            LLM response. The LLM will receive the complete previous
-            conversation for keeping the context. The following
-            arguments are passed to this template:
-                - feedback: The feedback from the user
+    commit_body_revision.jinja2: If the LLM response is rejected by
+        the user, this template is used to get a revision of the
+        LLM response. The LLM will receive the complete previous
+        conversation for keeping the context. The following
+        arguments are passed to this template:
+            - feedback: The feedback from the user
     """
 
     cli_configurable_name = "use_commit_body"
@@ -107,23 +107,24 @@ class CommitTitle(GitLLMJobBase):
 
     Template Files:
     ---------------
-        commit_title_system.txt: This template is used to get the
-            initial information for the llm to understand the task
-            it has to do. No Arguments are passed to this template.
+    commit_title_system.jinja2:
+        This template is used to get the initial information for the
+        llm to understand the task it has to do. No Arguments are
+        passed to this template.
 
-        commit_title_user.txt: This template is used to provide the
-            user specific information which is used to write the
-            commit title. The following arguments are passed to this
-            template:
-                - diff: The diff of the current staged files
-                - purpose: The purpose of the current branch
+    commit_title_user.jinja2:
+        This template is used to provide the user specific
+        information which is used to write the commit title. The
+        following arguments are passed to this template:
+            - diff: The diff of the current staged files
+            - purpose: The purpose of the current branch
 
-        commit_title_revision.txt: If the LLM response is rejected by
-            the user, this template is used to get a revision of the
-            LLM response. The LLM will receive the complete previous
-            conversation for keeping the context. The following
-            arguments are passed to this template:
-                - feedback: The feedback from the user
+    commit_title_revision.jinja2:
+        If the LLM response is rejected by the user, this template is
+        used to get a revision of the LLM response. The LLM will
+        receive the complete previous conversation for keeping the
+        context. The following arguments are passed to this template:
+            - feedback: The feedback from the user
     """
 
     def exec_command(self):
@@ -142,25 +143,26 @@ class FeedbackOnCommit(GitLLMJobBase):
 
     Template Files:
     ---------------
-        feedback_on_commit_system.txt: This template is used to get
-            the initial information for the llm to understand the
-            task it has to do. No Arguments are passed to this
-            template.
+    feedback_on_commit_system.jinja2:
+        This template is used to get the initial information for the
+        llm to understand the task it has to do. No Arguments are
+        passed to this template.
 
-        feedback_on_commit_user.txt: This template is used to
-            provide the user specific information which is used to
-            perform the code review. The following arguments are
-            passed to this template:
-                - diff: The diff of the current staged files
-                - purpose: The purpose of the current branch
+    feedback_on_commit_user.jinja2:
+        This template is used to provide the user specific
+        information which is used to perform the code review. The
+        following arguments are passed to this template:
+            - diff: The diff of the current staged files
+            - purpose: The purpose of the current branch
 
-        feedback_on_commit_revision.txt: If the LLM response is
-            rejected by the user (i.e. because the user has questions
-            which needs to be explained), this template is used to
-            get a revision of the LLM response. The LLM will receive
-            the complete previous conversation for keeping the context.
-            The following arguments are passed to this template:
-                - feedback: The feedback from the user
+    feedback_on_commit_revision.jinja2:
+        If the LLM response is rejected by the user (i.e. because
+        the user has questions which needs to be explained), this
+        template is used to get a revision of the LLM response. The
+        LLM will receive the complete previous conversation for
+        keeping the context. The following arguments are passed to
+        this template:
+            - feedback: The feedback from the user
     """
 
     cli_configurable_name = "include_ai_feedback"
@@ -173,25 +175,26 @@ class CodeReview(GitLLMJobBase):
 
     Template Files:
     ---------------
-        code_review_system.txt: This template is used to get
-            the initial information for the llm to understand the
-            task it has to do. No Arguments are passed to this
-            template.
+    code_review_system.jinja2:
+        This template is used to get the initial information for the
+        llm to understand the task it has to do. No Arguments are
+        passed to this template.
 
-        code_review_user.txt: This template is used to
-            provide the user specific information which is used to
-            perform the code review. The following arguments are
-            passed to this template:
-                - diff: The diff of the current staged files
-                - purpose: The purpose of the current branch
+    code_review_user.jinja2:
+        This template is used to provide the user specific
+        information which is used to perform the code review. The
+        following arguments are passed to this template:
+            - diff: The diff of the current staged files
+            - purpose: The purpose of the current branch
 
-        code_review_vision.txt: If the LLM response is
-            rejected by the user (i.e. because the user has questions
-            which needs to be explained), this template is used to
-            get a revision of the LLM response. The LLM will receive
-            the complete previous conversation for keeping the context.
-            The following arguments are passed to this template:
-                - feedback: The feedback from the user
+    code_review_vision.jinja2:
+        If the LLM response is rejected by the user (i.e. because the
+        user has questions which needs to be explained), this
+        template is used to get a revision of the LLM response. The
+        LLM will receive the complete previous conversation for
+        keeping the context. The following arguments are passed to
+        this template:
+            - feedback: The feedback from the user
     """
 
     def get_diff(self):
